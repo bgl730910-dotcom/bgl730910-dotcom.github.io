@@ -1,0 +1,36 @@
+# 천문사 공식 사이트 — robots
+# 부산점집 천문사 · 천상도술도사 (부산 북구 구포동)
+# 검색엔진과 AI 검색(ChatGPT, Gemini, Claude, Perplexity, 네이버·다음) 모두 환영합니다.
+
+User-agent: *
+Allow: /
+
+# AI 크롤러 허용 (명시)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Yeti
+Allow: /
+
+User-agent: Daumoa
+Allow: /
+
+Sitemap: https://bgl730910-dotcom.github.io/sitemap.xml
