@@ -1,8 +1,8 @@
 {
-  "versionCode": 7,
-  "versionName": "1.5.0",
-  "apkUrl": "https://raw.githubusercontent.com/bgl730910-dotcom/bgl730910-dotcom.github.io/main/mytv-updates/MyTV_v1.5.0_APK.apk",
-  "notes": "v1.5 - 도박·광고 배너 완전 차단(화면 정리로 꺼지지 않음, 로딩 10%부터 즉시 숨김), 하단 고정 바 포커스 트랩 제거, 방향키 스크롤·카드 전체 확대 테두리, 캐러셀 점 포커스 먹통 수정, 실시간 TV 즉시 재생·▲▼ 채널 전환(12채널), 회차 페이지 상·하단 바 자동 숨김과 회차/플레이어만 포커스, TVWIKI 주소 자동 교정",
-  "sha256": "e83381d9ec5de0fee2d4dbbba15472d24bb655a0532d32d8f0ef8cc6cb3b0ce8",
+  "versionCode": 8,
+  "versionName": "1.6.0",
+  "apkUrl": "https://raw.githubusercontent.com/bgl730910-dotcom/bgl730910-dotcom.github.io/main/mytv-updates/MyTV_v1.6.0_APK.apk",
+  "notes": "v1.6 - TVWIKI 주소 tvwiki66.net 자동 갱신, 페이지 실패 시 안내화면+다시 시도, 온에어TV 채널 16:9 꽉 찬 화면, TVMON 포스터 사진 복구(apisvc 전체 차단 제거), 재생페이지 도박 전면광고(비트365) 차단, 상단≡·하단 메뉴 유지, 카드 테두리 4면 표시·큰 래퍼 파란줄 제거, 회차 검색칸 포커스 탈출",
+  "sha256": "96c5d0bdca10e64254888d6384a807262f558c76c3361e130ad098106e7eeee3",
   "mirrorUrl": "https://bgl730910-dotcom.github.io/mytv-updates/version.json"
 }
