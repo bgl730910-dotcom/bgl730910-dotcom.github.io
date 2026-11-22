@@ -3,6 +3,6 @@
   "versionName": "1.4.0",
   "apkUrl": "https://raw.githubusercontent.com/bgl730910-dotcom/bgl730910-dotcom.github.io/main/mytv-updates/MyTV_v1.4.0_APK.apk",
   "notes": "v1.4 - 기본 고정 사이트에 온에어TV(https://onairtv.kr/) 추가, 왼쪽 메뉴·홈·사이트 관리에 '실시간' 카테고리 추가, 기존 목록에도 자동 합침(사용자가 직접 지우면 재삽입 안 함). 광고 차단·전체화면·다음 회차는 v1.3 그대로",
-  "sha256": "fc5255a34cf6de2330275573257e5d75b2a96068123b116b3883c2a12a5ce49c",
+  "sha256": "c68ccd15dd6b41e8cd8ab9b775f85f29c74e9b1e76d5d0d3cc3f54182da3033f",
   "mirrorUrl": "https://bgl730910-dotcom.github.io/mytv-updates/version.json"
 }
