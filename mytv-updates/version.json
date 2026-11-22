@@ -3,6 +3,6 @@
   "versionName": "1.3.0",
   "apkUrl": "https://raw.githubusercontent.com/bgl730910-dotcom/bgl730910-dotcom.github.io/main/mytv-updates/MyTV_v1.3.0_APK.apk",
   "notes": "v1.3 - 실제 사이트 플레이어(#playerArea) 전체화면 지원, 다음 회차 정밀 탐색(#playNextBtn / .ep-link / .btn_next), 광고 상자(#adf #bannerList #banner-row-* #fixed-banner-container-* .banner_wrap2 .row-banner .banner2) 명시 차단, 앱 안에서 바로 업데이트(업데이트 확인) 추가",
-  "sha256": "44de676eaf904c712b90f1c73115ee7ec9c3b4a897dafc22ff239b7f477cbbe9",
+  "sha256": "7ee2a7ba88e1de55a8c37796a89b2b7a0b184a0816a4b479da5d431d3727805e",
   "mirrorUrl": "https://bgl730910-dotcom.github.io/mytv-updates/version.json"
 }
