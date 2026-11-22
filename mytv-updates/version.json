@@ -1,8 +1,8 @@
 {
-  "versionCode": 9,
-  "versionName": "1.7.0",
-  "apkUrl": "https://raw.githubusercontent.com/bgl730910-dotcom/bgl730910-dotcom.github.io/main/mytv-updates/MyTV_v1.7.0_APK.apk",
-  "notes": "v1.7 - 목록이 두세 줄 건너뛰던 문제 완전 수정(문서 좌표 기준 바로 다음 한 줄로만 이동, 전체보기 건너뜀), TVMON 화면 ≡ 서랍메뉴 포커스(선택 항목 1개에만 테두리·모든 세부메뉴 1칸씩 이동), 회차목록 테두리·1칸 이동, TV 오버스캔 좌우 여백(앱 전체+영상), .m3u8 ExoPlayer 16:9 전체화면 재생(OK 정지·◀▶ 탐색·BACK 복귀), 영상만 크게에서 OK 일시정지, 맨 아래 푸터 포커스 제외·↑ 복귀, BACK 두 번 홈 이동 번쩍임 수정, 마우스 커서 hover+휠(mrowser 방식), 왼쪽 메뉴 8개로 단순화(실시간·TV 다시보기)",
-  "sha256": "78ba9b822b7242a110ddf4af1a7b2ec7ffebd96561f250ba7e24e77f76fa7935",
+  "versionCode": 10,
+  "versionName": "1.7.1",
+  "apkUrl": "https://raw.githubusercontent.com/bgl730910-dotcom/bgl730910-dotcom.github.io/main/mytv-updates/MyTV_v1.7.1_APK.apk",
+  "notes": "v1.7.1 - 드라마 목록 포스터 오차단(글자 6자 이하 규칙) 완전 수정: 목록 카드(li)·같은 사이트 작품 주소(/drama/ 등)·포스터+제목 카드는 절대 숨기지 않음(여름방학·키드냅 게임 등 30개 전부 복구), 상세 페이지 첫 진입은 화면 잠금 없이 회차 목록 첫 칸에 포커스, 회차를 고르면 16:9 딱 맞는 시청 화면(잘림 0)+카테고리 칩 숨김, OK·재생/일시정지·정지 키 동작(iframe 플레이어는 영상 가운데 탭), 이전화/다음화에서 ↑ = 맨 위 영상, 상세 진입 시 전용 플레이어 자동 넘김 없음",
+  "sha256": "f4ddd720cb95e8d5fdb565514269e54c00aa9303038b1efe5ffcb8c21e32511d",
   "mirrorUrl": "https://bgl730910-dotcom.github.io/mytv-updates/version.json"
 }
