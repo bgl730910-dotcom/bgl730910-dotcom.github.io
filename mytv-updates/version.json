@@ -1,8 +1,8 @@
 {
-  "versionCode": 14,
-  "versionName": "1.7.5",
-  "apkUrl": "https://raw.githubusercontent.com/bgl730910-dotcom/bgl730910-dotcom.github.io/main/mytv-updates/MyTV_v1.7.5_APK.apk",
-  "notes": "v1.7.5 - ① 페이지에 들어가자마자 파란 선택 테두리·방향키가 바로(0.5~1초) 동작 (티비몬·티비위키의 느린 광고·이미지 때문에 로딩 끝 신호가 1~2분 늦게 와도, 진행률 35%·문서 표시 시점·0.6/1.3/2.2초에 미리 넣고 여러 번 넣어도 한 번만 설치) ② 뒤로가기로 돌아온 화면도 즉시 테두리 복구 ③ 첫 테두리는 왼쪽 메뉴가 아니라 본문 첫 카드 ④ 영상 보는 중 OK·◀·▶ 를 눌러도 화면이 밑으로 내려가지 않음(시청 화면 문서 고정 + 포커스 preventScroll + 앱에서 scrollTo(0,0), 실브라우저 실측 scrollY=0·영상 top=0) ⑤ 티비위키 영화·작품 주소(/kor_movie·/ani_movie·/animation·/ent·/old_drama·/sisa 등)도 자동으로 꽉 찬 시청 화면, 주소와 무관하게 #playerArea+#view_iframe 이 있으면 시청 화면 ⑥ v1.7.4 기능 그대로(여백 0·영화 꽉 찬 화면·OK 1회 정지·◀▶ 10초 감기·BACK 즉시 포커스·공지 팝업 정리·안드로이드 7 인증서 보강).",
-  "sha256": "e9227ecb29fbc40838d8b787550d2d04adc46617c5c42bd50a35c4bac15fe6f3",
+  "versionCode": 15,
+  "versionName": "1.7.6",
+  "apkUrl": "https://raw.githubusercontent.com/bgl730910-dotcom/bgl730910-dotcom.github.io/main/mytv-updates/MyTV_v1.7.6_APK.apk",
+  "notes": "v1.7.6 - ① 요청하신 신규 사이트 4곳을 기본 목록 [TV 다시보기]에 추가했습니다. (이미 쓰던 사이트 목록에도 자동으로 합쳐지고, [사이트 관리]에서 직접 지우면 다시 들어오지 않습니다.) ② 4곳은 티비몬·티비위키와 화면 구조가 달라서 사이트별로 재생 화면을 새로 인식합니다. 영상이 있는 작품·재생 화면에서는 꽉 찬 시청 화면으로 열리고(OK 정지/재생, ◀▶ 10초 감기, BACK·▼ 목록), 목록·홈 화면에서는 잘못 열리지 않습니다. ③ 사이트별로 실제 확인된 상단 도박 배너만 정확히 정리했습니다. (작품 카드·재생 틀·메뉴는 그대로) ④ 새 사이트와 그 플레이어·포스터 주소를 안드로이드 7 인증서 보강 목록에 넣었습니다. ⑤ v1.7.5 기능은 그대로입니다. (진입 즉시 테두리·시청 중 화면 고정·티비위키 작품 시청 화면·여백 0·OK 1회 정지·공지 팝업 정리)",
+  "sha256": "563745c6ef6e8b775ce87b97ebf22161d56938d0317e83dcf456bd2a201c371d",
   "mirrorUrl": "https://bgl730910-dotcom.github.io/mytv-updates/version.json"
 }
