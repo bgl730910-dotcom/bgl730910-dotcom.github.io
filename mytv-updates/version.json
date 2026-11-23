@@ -1,8 +1,8 @@
 {
-  "versionCode": 12,
-  "versionName": "1.7.3",
-  "apkUrl": "https://raw.githubusercontent.com/bgl730910-dotcom/bgl730910-dotcom.github.io/main/mytv-updates/MyTV_v1.7.3_APK.apk",
-  "notes": "v1.7.3 - 안드로이드 7(API 24~25) 구형 셋톱박스 호환 보강: 앱 안에 Let's Encrypt ISRG Root X1/X2 인증서를 넣어 network_security_config 로 신뢰(TVMON·TVWIKI 의 CSS·JS·포스터가 오는 api3.apisvc11.com 때문에 디자인이 깨지던 문제 해결), 안드로이드 7.1 이하에서만 콘텐츠 호스트의 SSL_UNTRUSTED/만료 오류를 안전하게 통과, ExoPlayer 도 같은 루트를 신뢰하고 재생 실패 시 앱이 종료되지 않음, WebView 렌더러가 죽어도 앱은 살고 보던 화면 자동 복구, 주입 스크립트 전부 ES2015 문법 점검(0건)·구형이 모르는 CSS(inset 축약·flex gap·:focus-visible) 정리. v1.7.2 기능 그대로. Qbox 안드로이드 14 동작 변화 없음.",
-  "sha256": "46d25fe393bbb16a35c065629a4d950dea62b3e8f98f7c17f24f07ce9e5f3aa6",
+  "versionCode": 13,
+  "versionName": "1.7.4",
+  "apkUrl": "https://raw.githubusercontent.com/bgl730910-dotcom/bgl730910-dotcom.github.io/main/mytv-updates/MyTV_v1.7.4_APK.apk",
+  "notes": "v1.7.4 - 실사용 제보 3건 + 추가 요청 2건 수정: ① 영상 볼 때 사방 검은 여백·파란 테두리 제거(시청 중 오버스캔 여백 0, 화면 끝까지 꽉 참) ② 영화 상세(/movie/36794)처럼 2칸 주소의 페이지도 자동으로 꽉 찬 시청 화면 ③ OK(가운데) 한 번 = 정지/재생 (실제 플레이어 실측: iframe 포커스 + Space 키 1회가 정확히 1회 토글, 광고 그림이 클릭을 먹는 문제 우회) ④ ◀ / ▶ = 10초 뒤로 / 10초 앞으로 ⑤ BACK 으로 나오면 파란 선택 테두리가 즉시(0.1~0.3초) 회차 목록 첫 칸에 ⑥ 티비위키·티비몬 공지 팝업(긴급 안내·그누보드 공지) 자동 숨김 + '오늘 하루 안 보기' 대신 저장, 팝업에 포커스 갇힘 없음. 티비몬 드라마·예능·영화, 티비위키 모두 같은 플레이어 구조로 동작. v1.7.3 의 안드로이드 7 인증서 보강 그대로.",
+  "sha256": "35c6c53756c3576875860db286ddbdba2e05053216e424a6a7e8ae8002bdc6be",
   "mirrorUrl": "https://bgl730910-dotcom.github.io/mytv-updates/version.json"
 }
