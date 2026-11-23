@@ -1,0 +1,3170 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<title>MyTV v1.7.5 scroll check</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  body { margin:0; background:#111; color:#eee; font:13px/1.4 monospace; }
+  #header_wrap { height:120px; background:#222; }
+  #side_wrap { position:fixed; left:0; top:0; width:200px; height:100%; background:#1b1b1b; }
+  #playerArea { width:1280px; height:720px; margin-left:220px; background:#000; }
+  #playerArea .embed-container, #view_iframe { width:100%; height:100%; border:0; display:block; }
+  #other_list { list-style:none; margin:0; padding:0 0 400px 220px; }
+  #other_list li { height:180px; margin:8px 0; background:#2a2a2a; }
+  #out { position:fixed; right:0; top:0; width:640px; max-height:100vh; overflow:auto; background:#fff; color:#000;
+         z-index:2147483647; padding:8px; white-space:pre-wrap; border-left:2px solid #000; }
+</style></head>
+<body>
+<div id="side_wrap"><a href="#gnb1">메뉴1</a><br><a href="#gnb2">메뉴2</a></div>
+<div id="header_wrap"><a href="#h1">머리글 링크</a></div>
+<div id="playerArea"><div class="embed-container">
+  <iframe id="view_iframe" srcdoc="<!doctype html><html><head><meta charset=&quot;utf-8&quot;><style>
+html,body{margin:0;height:100%;background:#000;color:#fff;font:14px sans-serif}
+#stage{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+</style></head><body><div id=&quot;stage&quot;>PLAYER (iframe)</div></body></html>"></iframe>
+</div></div>
+<ul id="other_list">
+<li>회차 1</li>
+<li>회차 2</li>
+<li>회차 3</li>
+<li>회차 4</li>
+<li>회차 5</li>
+<li>회차 6</li>
+<li>회차 7</li>
+<li>회차 8</li>
+<li>회차 9</li>
+<li>회차 10</li>
+<li>회차 11</li>
+<li>회차 12</li>
+<li>회차 13</li>
+<li>회차 14</li>
+<li>회차 15</li>
+<li>회차 16</li>
+<li>회차 17</li>
+<li>회차 18</li>
+<li>회차 19</li>
+<li>회차 20</li>
+</ul>
+<pre id="out">측정 중…</pre>
+
+<script>
+window.__R = { steps: [] };
+function rec(label) {
+  var fr = document.getElementById('view_iframe');
+  var r = fr ? fr.getBoundingClientRect() : null;
+  var row = {
+    label: label,
+    scrollY: Math.round(window.scrollY || 0),
+    scrollX: Math.round(window.scrollX || 0),
+    iframeTop: r ? Math.round(r.top) : null,
+    iframeLeft: r ? Math.round(r.left) : null,
+    iframeW: r ? Math.round(r.width) : null,
+    iframeH: r ? Math.round(r.height) : null,
+    playerArea: (function () {
+      var pa = document.getElementById('playerArea');
+      if (!pa) { return null; }
+      var q = pa.getBoundingClientRect();
+      return [Math.round(q.left), Math.round(q.top), Math.round(q.width), Math.round(q.height)];
+    })(),
+    watch: document.documentElement.classList.contains('mytv-watch'),
+    fixedCss: (function () {
+      try {
+        var cs = getComputedStyle(document.body);
+        return cs.position + '/' + (document.documentElement.classList.contains('mytv-watch') ? getComputedStyle(document.documentElement).position : '-');
+      } catch (e) { return '?'; }
+    })()
+  };
+  window.__R.steps.push(row);
+  return row;
+}
+function show() {
+  var o = document.getElementById('out');
+  o.textContent = 'V175-SCROLL ' + JSON.stringify(window.__R, null, 1);
+}
+window.__recheck = function (tag) { rec(tag || 'recheck'); show(); return window.__R; };
+</script>
+
+<script id="v175-main">
+
+(function () {
+  try {
+    /* ===== v1.7.5 : 몇 번을 주입해도 안전한(idempotent) 설치 =====
+       ① 이미 설치가 끝났으면(__mytvNavOn === 1) 중복 초기화를 하지 않고
+          빠진 스타일·공지 팝업·포커스만 보강한 뒤 바로 끝난다.
+       ② 설치가 진행 중이면 겹쳐 들어온 호출은 그냥 물러난다.
+       ③ 아직 설치 전이면 지금 전체 설치한다. */
+    if (window.__mytvNavOn === 1) {
+      try { window.__mytvReinforce(); } catch (eR) {}
+      return 'ok';
+    }
+    if (window.__mytvIniting) { return 'busy'; }
+    window.__mytvIniting = 1;
+    window.__mytvReady = true;
+
+    var css = [
+      '*:focus { outline: none !important; }',
+      /* v1.7.3 : :focus-visible 는 Chrome 86+ 라 구형(51)에서는 규칙째로 버려진다.
+         앞의 *:focus 규칙과 섞어 두면 둘 다 무효가 되므로 따로 둔다. */
+      '*:focus-visible { outline: none !important; }',
+      '.mytv-hot {',
+      '  transform: scale(1.04) !important;',
+      '  transform-origin: center center !important;',
+      '  position: relative !important;',
+      '  z-index: 50 !important;',
+      '  border-radius: 10px !important;',
+      '  overflow: visible !important;',
+      '  transition: transform 120ms ease-out !important;',
+      '}',
+      '.mytv-hot::after {',
+      '  content: "" !important;',
+      '  position: absolute !important;',
+      '  left: 0 !important; top: 0 !important; right: 0 !important; bottom: 0 !important;',
+      '  border-radius: 10px !important;',
+      '  box-shadow: inset 0 0 0 4px #38BDF8, 0 0 20px rgba(56,189,248,0.85) !important;',
+      '  pointer-events: none !important;',
+      '  z-index: 60 !important;',
+      '}',
+      '.mytv-hot img { border-radius: 10px !important; }',
+      /* v1.7 : 작은 메뉴 항목·회차 링크·≡ 버튼에도 보이는 테두리 */
+      '.mytv-ring {',
+      '  outline: 3px solid #38BDF8 !important;',
+      '  outline-offset: -2px !important;',
+      '  box-shadow: 0 0 18px rgba(56,189,248,0.9) !important;',
+      '  border-radius: 8px !important;',
+      '  background-color: rgba(56,189,248,0.16) !important;',
+      '  color: #ffffff !important;',
+      '  position: relative !important;',
+      '  z-index: 60 !important;',
+      '}',
+      '.mytv-ring::after { content: none !important; }',
+      '#side_wrap ul:not(.mytv-ring), #side_wrap li:not(.mytv-ring), #side_wrap nav:not(.mytv-ring),',
+      '#gnb:not(.mytv-ring), #snb:not(.mytv-ring), #header_wrap:not(.mytv-ring),',
+      '#float:not(.mytv-ring), #footer_wrap:not(.mytv-ring), footer:not(.mytv-ring) {',
+      '  outline: none !important; box-shadow: none !important;',
+      '}',
+      '#other_list li, #other_list li a { border-radius: 10px !important; }',
+      /* v1.7 : 문서가 좌우로 밀려 글자가 잘리지 않게 */
+      'html, body { overflow-x: hidden !important; }',
+      '.mytv-one {',
+      '  outline: 3px solid #38BDF8 !important;',
+      '  outline-offset: -3px !important;',
+      '  box-shadow: 0 0 18px rgba(56,189,248,0.85) !important;',
+      '  position: relative !important;',
+      '  z-index: 50 !important;',
+      '  border-radius: 10px !important;',
+      '}',
+      '.banner_wrap2, .banner_wrap, #banner-row-1, #banner-row-2, #banner-row-3, #banner-row-4, #fixed-banner-container-1, #fixed-banner-container-2, #fixed-banner-container-3, #single-banner-container, .row-banner { display: none !important; visibility: hidden !important; height: 0 !important; width: 0 !important; margin: 0 !important; padding: 0 !important; }',
+      'img[src*="/data/banner/"], img[src*="/AD/"] { display: none !important; }',
+      'html.mytv-cinema #header_wrap, html.mytv-cinema .header_mobile, html.mytv-cinema #side_wrap, html.mytv-cinema #float, html.mytv-cinema .notice { display: none !important; }',
+      'html.mytv-cinema #container_wrap, html.mytv-cinema #body_wrap, html.mytv-cinema #bo_v, html.mytv-cinema .bo_v_mov { max-width: none !important; width: 100% !important; margin-left: 0 !important; margin-right: 0 !important; padding-left: 0 !important; padding-right: 0 !important; }',
+      'html.mytv-cinema #playerArea { max-width: none !important; width: 100% !important; margin: 0 !important; }',
+      /* v1.7.1 : 시네마(영상만 크게)에서 영상이 위아래로 잘리지 않도록 16:9 로 딱 맞춘다.
+         __mytvFitPlayer 가 --mytv-pw / --mytv-ph 를 계산해 넣는다. */
+      'html.mytv-cinema:not(.mytv-cine-full) #playerArea { display: flex !important; align-items: center !important; justify-content: center !important; width: 100% !important; max-width: 100% !important; height: var(--mytv-ph, 100vh) !important; max-height: var(--mytv-ph, 100vh) !important; margin: 0 !important; padding: 0 !important; background: #000 !important; overflow: hidden !important; position: relative !important; box-sizing: border-box !important; }',
+      'html.mytv-cinema:not(.mytv-cine-full) #playerArea .embed-container { width: var(--mytv-pw, 100vw) !important; height: var(--mytv-ph, 100vh) !important; max-width: 100% !important; padding: 0 !important; margin: 0 !important; position: relative !important; overflow: hidden !important; }',
+      'html.mytv-cinema:not(.mytv-cine-full) #playerArea #view_iframe, html.mytv-cinema:not(.mytv-cine-full) #playerArea iframe { display: block !important; width: var(--mytv-pw, 100vw) !important; height: var(--mytv-ph, 100vh) !important; margin: 0 !important; border: 0 !important; }',
+      /* v1.7.1 : 영상 화면 포커스 칸 (OK = 재생/일시정지, ▼ = 회차 목록). 클릭은 영상으로 그대로 통과 */
+      '.mytv-player-stop { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; height: 100% !important; pointer-events: none !important; background: transparent !important; outline: none !important; z-index: 6 !important; }',
+      '.mytv-player-stop.mytv-hot { transform: none !important; }',
+      /* v1.7.4 : 시청 중에는 영상 둘레에 파란 테두리를 그리지 않는다 (사용자 제보: 파란 테두리가 거슬림) */
+      '.mytv-player-stop.mytv-hot::after, html.mytv-watch .mytv-player-stop::after, html.mytv-cinema .mytv-player-stop::after { box-shadow: none !important; background: transparent !important; border: 0 !important; display: none !important; }',
+      /* v1.7.1 : 시청 화면에서는 영상 위의 카테고리 칩 줄(영화·한국영화·드라마…)도 숨긴다 */
+      'html.mytv-cinema .mytv-cine-hide { display: none !important; visibility: hidden !important; height: 0 !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; border: 0 !important; overflow: hidden !important; }',
+      'html.mytv-cine-full, html.mytv-cine-full body { background: #000 !important; overflow: hidden !important; }',
+      'html.mytv-cine-full #playerArea { position: fixed !important; left: 0 !important; top: 0 !important; width: 100vw !important; height: 100vh !important; margin: 0 !important; padding: 0 !important; background: #000 !important; z-index: 2147483000 !important; }',
+      'html.mytv-cine-full #playerArea .embed-container, html.mytv-cine-full #playerArea iframe { width: 100% !important; height: 100% !important; }',
+      /* ===== v1.7.2 : 시청 화면 = 화면 전체를 영상으로 채우고 뒤쪽 글자를 완전히 가린다 =====
+         #mytv-watch-bg  : #playerArea 바깥에 깔리는 화면 전체 검은 막 (z 2147483640)
+         #playerArea     : 그 위에서 100vw x 100vh 로 꽉 참 (z 2147483641) */
+      '#mytv-watch-bg { position: fixed !important; left: 0 !important; top: 0 !important; right: 0 !important; bottom: 0 !important; width: 100vw !important; height: 100vh !important; background: #000 !important; z-index: 2147483640 !important; pointer-events: none !important; display: block !important; }',
+      /* v1.7.5 : 시청 중에는 문서 자체를 화면에 고정한다. iframe 에 포커스를 주거나 방향키를 보낼 때
+         브라우저가 화면을 밑으로 밀어 내리는 일(제보: ▶ 한 번에 화면이 내려가고 ▶ 아이콘)을 막는다. */
+      'html.mytv-watch, html.mytv-watch body { position: fixed !important; left: 0 !important; top: 0 !important; width: 100vw !important; height: 100vh !important; background: #000 !important; overflow: hidden !important; margin: 0 !important; padding: 0 !important; }',
+      'html.mytv-watch #container_wrap, html.mytv-watch #body_wrap, html.mytv-watch #content_wrap, html.mytv-watch #bo_v, html.mytv-watch .bo_v_mov, html.mytv-watch #playerArea { transform: none !important; filter: none !important; perspective: none !important; contain: none !important; will-change: auto !important; }',
+      'html.mytv-watch #playerArea { position: fixed !important; left: 0 !important; top: 0 !important; right: 0 !important; bottom: 0 !important; width: 100vw !important; height: 100vh !important; max-width: 100% !important; max-height: 100% !important; min-width: 0 !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: #000 !important; overflow: hidden !important; z-index: 2147483641 !important; display: block !important; box-shadow: none !important; box-sizing: border-box !important; }',
+      'html.mytv-watch #playerArea .embed-container { position: relative !important; left: 0 !important; top: 0 !important; width: 100vw !important; height: 100vh !important; max-width: 100% !important; max-height: 100% !important; min-width: 0 !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: #000 !important; overflow: hidden !important; z-index: 1 !important; }',
+      'html.mytv-watch #playerArea iframe, html.mytv-watch #playerArea video, html.mytv-watch #playerArea #view_iframe, html.mytv-watch #playerArea embed, html.mytv-watch #playerArea object { position: absolute !important; left: 0 !important; top: 0 !important; right: 0 !important; bottom: 0 !important; width: 100vw !important; height: 100vh !important; max-width: 100% !important; max-height: 100% !important; min-width: 0 !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: #000 !important; display: block !important; object-fit: contain !important; z-index: 2 !important; }',
+      'html.mytv-watch #playerArea .iframe-loading, html.mytv-watch #playerArea .loading { z-index: 3 !important; }',
+      'html.mytv-watch #playerArea .mytv-player-stop { z-index: 2147483642 !important; }',
+      /* v1.7.4 : 공지 팝업(티비위키 '긴급 안내', 그누보드 공지 #hd_pop)은 아예 그리지 않는다 */
+      '#dnsguide-modal-overlay, #hd_pop, .hd_pops, .hd_pops_wrap, #hd_pops, .popup_layer, #notice_pop, .notice_pop, #pop_layer { display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; }',
+      /* 영상 화면에서는 뒤쪽 제목·좋아요·댓글·하단 메뉴를 아예 그리지 않는다 */
+      'html.mytv-watch #bo_v_act, html.mytv-watch #bo_v_atc, html.mytv-watch #bo_v_poster, html.mytv-watch #bo_v_movinfo, html.mytv-watch #other_list, html.mytv-watch #bo_v_evalue, html.mytv-watch #header_wrap, html.mytv-watch .header_mobile, html.mytv-watch #side_wrap, html.mytv-watch #float, html.mytv-watch #footer_wrap, html.mytv-watch #footer, html.mytv-watch .mytv-cine-hide { display: none !important; visibility: hidden !important; height: 0 !important; min-height: 0 !important; overflow: hidden !important; }',
+      'html.mytv-live, html.mytv-live body { background: #000 !important; overflow: hidden !important; height: 100% !important; margin: 0 !important; padding: 0 !important; }',
+      'html.mytv-live.mytv-fs-on body > *:not(.mytv-fs):not(.mytv-fs-host) { display: none !important; visibility: hidden !important; }',
+      'html.mytv-live .mytv-fs-host { position: static !important; display: block !important; overflow: visible !important; width: auto !important; height: auto !important; max-width: none !important; max-height: none !important; min-width: 0 !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; background: transparent !important; transform: none !important; filter: none !important; perspective: none !important; contain: none !important; will-change: auto !important; opacity: 1 !important; }',
+      'html.mytv-live.mytv-fs-on .mytv-fs-host > *:not(.mytv-fs):not(.mytv-fs-host) { display: none !important; visibility: hidden !important; }',
+      'html.mytv-live .mytv-fs { position: fixed !important; left: 0 !important; top: 0 !important; right: 0 !important; bottom: 0 !important; width: 100vw !important; height: 100vh !important; max-width: none !important; max-height: none !important; min-width: 0 !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; background: #000 !important; overflow: hidden !important; z-index: 2147483640 !important; transform: none !important; }',
+      'html.mytv-live .mytv-fs video, html.mytv-live .mytv-fs iframe, html.mytv-live .mytv-fs embed, html.mytv-live .mytv-fs object, html.mytv-live video.mytv-fs, html.mytv-live iframe.mytv-fs { position: absolute !important; left: 0 !important; top: 0 !important; right: 0 !important; bottom: 0 !important; width: 100% !important; height: 100% !important; max-width: none !important; max-height: none !important; min-width: 0 !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; border: 0 !important; object-fit: contain !important; background: #000 !important; z-index: 2 !important; }',
+      'html.mytv-live .mytv-fs .loading, html.mytv-live .mytv-fs .player-loading, html.mytv-live .mytv-fs .player-hint { z-index: 3 !important; }',
+      'html.mytv-live .mytv-fs .play-ov { position: absolute !important; left: 50% !important; top: 50% !important; margin: -40px 0 0 -80px !important; width: 160px !important; height: 80px !important; z-index: 4 !important; }',
+      'html.mytv-live header.topbar, html.mytv-live footer.foot, html.mytv-live .crumbs, html.mytv-live .ch-actions, html.mytv-live .note, html.mytv-live .rel, html.mytv-live .channel-schedule, html.mytv-live .watch-home, html.mytv-live .wrap > h1, html.mytv-live .wrap > h2, html.mytv-live .wrap > p, html.mytv-live .wrap > ul, html.mytv-live .wrap > section, html.mytv-live .topbar, html.mytv-live .site-nav, html.mytv-live .brand { display: none !important; }',
+      'html.mytv-live #float, html.mytv-live #side_wrap { display: none !important; }',
+      'html.mytv-fs, html.mytv-fs body { overflow: hidden !important; background: #000 !important; }',
+      'html.mytv-fs video { width: 100vw !important; height: 100vh !important; max-width: none !important; max-height: none !important; object-fit: contain !important; background: #000 !important; }',
+      'html.mytv-areafs, html.mytv-areafs body { overflow: hidden !important; background: #000 !important; }',
+      'ins.adsbygoogle, .adsbygoogle, iframe[src*="doubleclick"], iframe[src*="googlesyndication"], iframe[src*="adservice"], iframe[src*="adsterra"], iframe[src*="propellerads"], iframe[src*="popads"],',
+      '[id^="google_ads"], [id*="adsbygoogle"], [class*="adsbygoogle"], [class*="ad-slot"], [class*="ad_banner"], [class*="ad-banner"], [class*="advert"], [id*="div-gpt-ad"] {',
+      '  display: none !important; visibility: hidden !important; height: 0 !important;',
+      '}'
+    ].join('\n');
+    /* v1.7.5 : 스타일 태그가 사이트 스크립트에 지워졌을 때 되살릴 수 있게 보관한다 */
+    window.__mytvCss = css;
+
+    var st = document.createElement('style');
+    st.id = 'mytv-style';
+    st.appendChild(document.createTextNode(css));
+    (document.head || document.documentElement).appendChild(st);
+
+    window.__mytvReport = function () {
+      try {
+        var vs = document.getElementsByTagName('video');
+        for (var i = 0; i < vs.length; i++) {
+          var v = vs[i];
+          if (v && !v.paused && v.currentTime > 0.3) {
+            if (window.MyTvBridge && window.MyTvBridge.onPlay) {
+              window.MyTvBridge.onPlay(location.href, document.title);
+            }
+            return true;
+          }
+        }
+      } catch (e) {}
+      return false;
+    };
+
+    window.__mytvFullscreen = function () {
+      try {
+        if (document.fullscreenElement) { return 'already'; }
+        var best = null;
+        var area = 0;
+        var vs = document.querySelectorAll('video');
+        for (var i = 0; i < vs.length; i++) {
+          var r = vs[i].getBoundingClientRect();
+          var a = r.width * r.height;
+          if (r.width > 120 && a > area) { area = a; best = vs[i]; }
+        }
+        if (!best) {
+          var pa = null;
+          try { pa = document.getElementById('playerArea'); } catch (e9) {}
+          if (pa && window.__mytvPlayerAreaFs) {
+            var r9 = window.__mytvPlayerAreaFs(true);
+            if (String(r9).indexOf('"ok":true') >= 0) { return 'area'; }
+          }
+        }
+        var target = best || document.documentElement;
+        var fn = target.requestFullscreen || target.webkitRequestFullscreen || target.mozRequestFullScreen || target.msRequestFullscreen;
+        if (!fn) { return 'noapi'; }
+        var p = fn.call(target);
+        if (p && p.catch) { p.catch(function () {}); }
+        return 'ok';
+      } catch (e) { return 'err'; }
+    };
+
+    /* v1.7.1 : 재생 중인 영상(맨 위 문서 또는 iframe)의 가운데 좌표 (CSS px) */
+    window.__mytvVideoPoint = function () {
+      try {
+        var iwW = window.innerWidth || 1280;
+        var ihW = window.innerHeight || 720;
+        /* v1.7.2 : 시청 화면에서는 영상이 화면 전체를 채우므로 '화면 한가운데'가 곧 영상 가운데.
+           (막 들어가 레이아웃이 바뀌는 순간에도 화면 밖 좌표를 누르지 않게) */
+        try {
+          if (document.documentElement.classList.contains('mytv-watch')) {
+            return Math.round(iwW / 2) + ',' + Math.round(ihW / 2) + ',' + iwW + ',' + ihW;
+          }
+        } catch (eW) {}
+        var v = document.querySelector('video');
+        if (v) {
+          var vr = v.getBoundingClientRect ? v.getBoundingClientRect() : null;
+          if (vr && vr.width >= 40 && vr.height >= 40) {
+            var iw0 = window.innerWidth || 1280;
+            var ih0 = window.innerHeight || 720;
+            return Math.round(vr.left + vr.width / 2) + ',' + Math.round(vr.top + vr.height / 2) +
+              ',' + iw0 + ',' + ih0;
+          }
+        }
+        var fr = document.getElementById('view_iframe');
+        if (!fr) {
+          var pa0 = document.getElementById('playerArea');
+          fr = pa0 ? pa0.querySelector('iframe') : null;
+        }
+        if (!fr) { fr = document.querySelector('#playerArea iframe, .embed-container iframe'); }
+        if (fr) {
+          var r = fr.getBoundingClientRect ? fr.getBoundingClientRect() : null;
+          if (r && r.width >= 60 && r.height >= 40) {
+            var iw1 = window.innerWidth || 1280;
+            var ih1 = window.innerHeight || 720;
+            return Math.round(r.left + r.width / 2) + ',' + Math.round(r.top + r.height / 2) +
+              ',' + iw1 + ',' + ih1;
+          }
+        }
+        /* v1.7.2 : 플레이어 상자가 아직 작게 그려졌으면 #playerArea 가운데를 누른다 */
+        var paV = null;
+        try { paV = document.getElementById('playerArea'); } catch (eV) {}
+        if (paV && paV.getBoundingClientRect) {
+          var rv = paV.getBoundingClientRect();
+          if (rv && rv.width >= 60 && rv.height >= 40) {
+            var iwV = window.innerWidth || 1280;
+            var ihV = window.innerHeight || 720;
+            return Math.round(rv.left + rv.width / 2) + ',' + Math.round(rv.top + rv.height / 2) +
+              ',' + iwV + ',' + ihV;
+          }
+        }
+      } catch (e) {}
+      return '';
+    };
+
+    /* v1.7.1 : 재생/일시정지 — 위 문서에 video 가 있으면 직접, iframe 이면 'tap'(가운데를 누름) */
+    window.__mytvTogglePlay = function () {
+      try {
+        var v = document.querySelector('video');
+        if (v) {
+          if (v.paused) {
+            var pr = v.play();
+            if (pr && pr.catch) { pr.catch(function () {}); }
+            return 'video-play';
+          }
+          v.pause();
+          return 'video-pause';
+        }
+        if (window.__mytvVideoPoint && window.__mytvVideoPoint()) { return 'tap'; }
+        return 'none';
+      } catch (e) { return 'err'; }
+    };
+
+    window.__mytvPlayPause = function () {
+      try {
+        var vs = document.querySelectorAll('video');
+        for (var i = 0; i < vs.length; i++) {
+          var v = vs[i];
+          if (v.paused) {
+            var p = v.play();
+            if (p && p.catch) { p.catch(function () {}); }
+          } else {
+            v.pause();
+          }
+        }
+        return 'ok';
+      } catch (e) { return 'err'; }
+    };
+
+    window.__mytvInfo = function () {
+      try {
+        var playing = false;
+        var vs = document.querySelectorAll('video');
+        for (var i = 0; i < vs.length; i++) {
+          if (!vs[i].paused && vs[i].currentTime > 0.3) { playing = true; break; }
+        }
+        return JSON.stringify({ u: location.href, t: document.title, p: playing });
+      } catch (e) { return ''; }
+    };
+
+    window.__mytvSearch = function (q) {
+      try {
+        var els = document.querySelectorAll('input[type=search], input[name=q], input[name=query], input[name=keyword], input[name=search], input[type=text]');
+        for (var i = 0; i < els.length; i++) {
+          var el = els[i];
+          if (!el || el.offsetParent === null) { continue; }
+          var r = el.getBoundingClientRect();
+          if (r.width < 40 || r.height < 10) { continue; }
+          el.focus();
+          el.value = q;
+          try {
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+          } catch (e) {}
+          if (el.form) {
+            try { el.form.submit(); return 'ok'; } catch (e) {}
+          }
+          try {
+            el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
+            el.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
+          } catch (e) {}
+          return 'ok';
+        }
+      } catch (e) {}
+      return 'none';
+    };
+
+    window.__mytvHideAds = function (strong) {
+      var hidden = 0;
+      try {
+        var vw = window.innerWidth;
+        var vh = window.innerHeight;
+        var all = document.querySelectorAll('div, iframe, ins, section, aside');
+        for (var i = 0; i < all.length; i++) {
+          var el = all[i];
+          if (!el || !el.parentNode) { continue; }
+          if (mytvPlayerish(el)) { continue; }
+          var cs = window.getComputedStyle(el);
+          if (!cs) { continue; }
+          var pos = cs.position;
+          if (pos !== 'fixed' && pos !== 'sticky') { continue; }
+          var r = el.getBoundingClientRect();
+          if (r.width < vw * 0.5) { continue; }
+          if (r.height > (strong ? vh * 0.35 : vh * 0.22)) { continue; }
+          if (el.querySelector('video')) { continue; }
+          if (el.querySelector('form, button, input, select, textarea')) { continue; }
+          /* v1.6 : 머리글·바닥글·카테고리 바는 목록 화면에서 그대로 둔다 */
+          try {
+            if (el.closest && el.closest('#header_wrap, #footer_wrap, .topbar, #float, header, footer, nav')) { continue; }
+          } catch (e8) { continue; }
+          var zi = parseInt(cs.zIndex, 10);
+          if (isNaN(zi)) { zi = 0; }
+          if (strong) {
+            if (zi < 20) { continue; }
+          } else {
+            if (zi < 500) { continue; }
+            var tag = ((el.id || '') + ' ' + (el.className && el.className.toString ? el.className.toString() : '')).toLowerCase();
+            if (!/ad|banner|popup|popund|promo|sponsor|overlay|floating/.test(tag)) { continue; }
+          }
+          el.style.setProperty('display', 'none', 'important');
+          hidden = hidden + 1;
+          if (hidden > 30) { break; }
+        }
+      } catch (e) {}
+      return hidden;
+    };
+
+    window.__mytvNext = function () {
+      function norm(s) {
+        return String(s || '').replace(/\s+/g, ' ').trim().toLowerCase();
+      }
+      function clean(u) {
+        var s = String(u || '');
+        var h = s.indexOf('#');
+        if (h >= 0) { s = s.substring(0, h); }
+        while (s.length > 1 && s.charAt(s.length - 1) === '/') { s = s.substring(0, s.length - 1); }
+        return s;
+      }
+      function absOf(el) {
+        try {
+          var a = el.getAttribute ? el.getAttribute('href') : null;
+          if (a === null || a === '' || a === '#') { return ''; }
+          if (/^\s*javascript:/i.test(a)) { return ''; }
+          var abs = '';
+          try { abs = el.href ? String(el.href) : ''; } catch (e) {}
+          if (!abs) { try { abs = new URL(a, location.href).href; } catch (e2) {} }
+          if (!/^https?:/i.test(abs)) { return ''; }
+          return clean(abs);
+        } catch (e) { return ''; }
+      }
+      function usable(el) {
+        try {
+          if (!el || el.nodeType !== 1) { return false; }
+          if (el.disabled) { return false; }
+          if (String(el.getAttribute('aria-disabled') || '') === 'true') { return false; }
+          if (mytvInAd(el)) { return false; }
+          return true;
+        } catch (e) { return false; }
+      }
+      function hrefTarget(el) {
+        var abs = absOf(el);
+        if (!abs) { return ''; }
+        if (abs === clean(location.href)) { return ''; }
+        return abs;
+      }
+      function epNum(el) {
+        try {
+          var box = el;
+          var d = 0;
+          while (box && box.nodeType === 1 && d < 3) {
+            var t = String(box.textContent || '').replace(/\s+/g, ' ');
+            var m = t.match(/([0-9]{1,4})\s*(화|회|話|话)/);
+            if (m) { return parseInt(m[1], 10); }
+            var m2 = t.match(/EP\.?\s*([0-9]{1,4})/i);
+            if (m2) { return parseInt(m2[1], 10); }
+            box = box.parentElement;
+            d = d + 1;
+          }
+        } catch (e) {}
+        return null;
+      }
+      function fire(el, how) {
+        try {
+          if (window.MyTvBridge && window.MyTvBridge.onWatchIntent) { window.MyTvBridge.onWatchIntent(); }
+        } catch (e0w) {}
+        var label = norm(el.innerText || el.textContent || el.getAttribute('aria-label') ||
+          el.getAttribute('title') || '').substring(0, 24);
+        var url = hrefTarget(el);
+        if (url) {
+          try { location.href = url; } catch (e) {}
+          return JSON.stringify({ ok: true, how: how, label: label, url: url });
+        }
+        try { el.scrollIntoView({ block: 'center', inline: 'center' }); } catch (e1) {}
+        try { el.focus(); } catch (e2) {}
+        var clicked = false;
+        try { if (el.click) { el.click(); clicked = true; } } catch (e3) {}
+        if (!clicked) {
+          try { el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })); clicked = true; } catch (e4) {}
+        }
+        return JSON.stringify({ ok: clicked, how: how, label: label, url: '' });
+      }
+
+      /* 1순위: 실제 사이트의 다음화 버튼 (#playNextBtn, 진짜 링크일 때만 #epListNext) */
+      function findById(ids) {
+        for (var i = 0; i < ids.length; i++) {
+          var el = null;
+          try { el = document.getElementById(ids[i]); } catch (e) {}
+          if (!el) { continue; }
+          if (!usable(el)) { continue; }
+          if (hrefTarget(el)) { return el; }
+          if (String(el.getAttribute('data-ep-idx') || '')) { return el; }
+          var tag = String(el.tagName || '').toLowerCase();
+          var cls = String(el.className && el.className.toString ? el.className.toString() : '');
+          if (tag === 'button' && !/arrow|scroll|prev|before/i.test(cls)) {
+            if (/다음|next/.test(norm(el.innerText || el.textContent || ''))) { return el; }
+          }
+        }
+        return null;
+      }
+
+      /* 2순위: .ep-link 회차 목록 — 현재 회차(URL 일치 또는 on) 바로 위/아래 화수를 계산 */
+      function findEpLink() {
+        var els = null;
+        try { els = document.querySelectorAll('.ep-link'); } catch (e) {}
+        if (!els || els.length < 1) { return null; }
+        var cur = clean(location.href);
+        var active = -1;
+        var i;
+        var j;
+        for (i = 0; i < els.length; i++) {
+          if (absOf(els[i]) === cur) { active = i; break; }
+        }
+        if (active < 0) {
+          for (i = 0; i < els.length; i++) {
+            var box = els[i].parentElement || els[i];
+            var nm = ' ' + norm(mytvName(els[i])) + ' ' + norm(mytvName(box)) + ' ';
+            if (nm.indexOf(' on ') >= 0 || nm.indexOf(' active ') >= 0 || nm.indexOf(' current ') >= 0) {
+              active = i;
+              break;
+            }
+          }
+        }
+        if (active < 0) { return null; }
+        var curNum = epNum(els[active]);
+        if (curNum !== null) {
+          var best = null;
+          var bestNum = 0;
+          for (j = 0; j < els.length; j++) {
+            if (j === active) { continue; }
+            var n = epNum(els[j]);
+            if (n === null) { continue; }
+            if (n > curNum && (best === null || n < bestNum)) { best = els[j]; bestNum = n; }
+          }
+          if (best) { return best; }
+          return null;
+        }
+        if (active > 0 && els[active - 1]) { return els[active - 1]; }
+        return null;
+      }
+
+      /* 3순위: 게시판형 '다음화' 링크 (.btn_next) — javascript: 경고 링크는 제외 */
+      function findBtnNext() {
+        var sels = ['.bo_v_nb_mobile li.btn_next a', '.bo_v_nb li.btn_next a', 'li.btn_next a', 'a.btn_next', '.btn_next > a'];
+        for (var i = 0; i < sels.length; i++) {
+          var list = null;
+          try { list = document.querySelectorAll(sels[i]); } catch (e) {}
+          if (!list) { continue; }
+          for (var j = 0; j < list.length; j++) {
+            if (usable(list[j]) && hrefTarget(list[j])) { return list[j]; }
+          }
+        }
+        return null;
+      }
+
+      /* 4순위: 화면의 '다음 회차' 글자 버튼 */
+      function findWords() {
+        var words = ['다음 회차', '다음회차', '다음화', '다음 화', '다음 편', '다음편',
+          '다음 에피소드', '다음에피소드', '다음 보기', '다음보기', 'next'];
+        var best = null;
+        var bestScore = 0;
+        var list = null;
+        try {
+          list = document.querySelectorAll('a[href], button, [role="button"], [rel="next"], .next, [id="next"], [class*="next"]');
+        } catch (e) { return null; }
+        for (var i = 0; i < list.length; i++) {
+          var el = list[i];
+          try {
+            if (!usable(el)) { continue; }
+            var tag = String(el.tagName || '').toLowerCase();
+            var role = String(el.getAttribute('role') || '').toLowerCase();
+            if (tag !== 'a' && tag !== 'button' && tag !== 'input' && tag !== 'area' &&
+                role !== 'button' && !el.onclick) { continue; }
+            var r = el.getBoundingClientRect ? el.getBoundingClientRect() : null;
+            if (r && r.width > 0 && r.height > 0 && (r.width < 2 || r.height < 2)) { continue; }
+            var hr = el.getAttribute('href');
+            if (hr === '') { continue; }
+            if (hr !== null && /^\s*javascript:/i.test(hr)) { continue; }
+            var cls = ((el.id || '') + ' ' + (el.className && el.className.toString ? el.className.toString() : '')).toLowerCase();
+            if (/(^|[\s_-])(prev|previous|before|beforehand)([\s_-]|)/.test(cls)) { continue; }
+            var t = norm(el.innerText || el.textContent || el.getAttribute('aria-label') || el.getAttribute('title') || '');
+            if (!t || t.length > 24 || t.length < 2) { continue; }
+            if (!/[가-힣a-z]/i.test(t)) { continue; }
+            if (/close|cancel|dismiss|shut|remove/.test(cls)) { continue; }
+            if (t.indexOf('취소') >= 0 || t.indexOf('닫기') >= 0 || t.indexOf('나중') >= 0 ||
+                t.indexOf('cancel') >= 0 || t.indexOf('close') >= 0) { continue; }
+            var ov = null;
+            try { ov = el.closest ? el.closest('#nextEpisodeOverlay') : null; } catch (e8) {}
+            if (ov) { continue; }
+            if (t.indexOf('이전') >= 0 || t.indexOf('예고') >= 0 || t.indexOf('미리') >= 0) { continue; }
+            var s = 0;
+            for (var k = 0; k < words.length; k++) {
+              if (t === words[k]) { s = 110 - k; break; }
+            }
+            if (!s) {
+              for (var m = 0; m < words.length; m++) {
+                if (t.indexOf(words[m]) >= 0) { s = 70 - m; break; }
+              }
+            }
+            var rel = String(el.getAttribute('rel') || '').toLowerCase();
+            if (rel === 'next') { s = Math.max(s, 85); }
+            if (cls === 'next' || /(^|[\s_-])next([\s_-]|)/.test(cls)) { s = Math.max(s, 60); }
+            if (s > bestScore) { bestScore = s; best = el; }
+          } catch (e2) {}
+        }
+        return best;
+      }
+
+      var el = findById(['playNextBtn', 'epListNext']);
+      var how = 'playNextBtn';
+      if (!el) { how = 'ep-link'; el = findEpLink(); }
+      if (!el) { how = 'btnNext'; el = findBtnNext(); }
+      if (!el) { how = 'label'; el = findWords(); }
+      if (!el) { return JSON.stringify({ ok: false, how: 'none', label: '', url: '' }); }
+      return fire(el, how);
+    };
+
+    window.__mytvChromeList = [];
+
+    function mytvProtected(el) {
+      try {
+        if (!el || !el.tagName) { return true; }
+        if (mytvPlayerish(el)) { return true; }
+        var tag = el.tagName.toLowerCase();
+        if (tag === 'video' || tag === 'audio' || tag === 'html' || tag === 'body') { return true; }
+        var cls = ((el.id || '') + ' ' + (el.className && el.className.toString ? el.className.toString() : '')).toLowerCase();
+        if (/(video|player|control|ctrl|vjs|jwplayer|plyr|dplayer|artplayer|shaka|progress|seek|timeline|volume|mute|subtitle|caption|quality|settings|toolbar)/.test(cls)) { return true; }
+        if (el.querySelector) {
+          if (el.querySelector('video, audio')) { return true; }
+          if (el.querySelector('[class*="control"], [class*="player"], .vjs-control-bar, .jw-controls, .plyr__controls')) { return true; }
+        }
+        var p = el.parentElement;
+        for (var k = 0; k < 3 && p; k++) {
+          try {
+            var pcls = ((p.id || '') + ' ' + (p.className && p.className.toString ? p.className.toString() : '')).toLowerCase();
+            if (/(video|player|control|jw|vjs|plyr|artplayer|dplayer|shaka)/.test(pcls) && p.querySelector && p.querySelector('video')) { return true; }
+          } catch (e9) {}
+          p = p.parentElement;
+        }
+        return false;
+      } catch (e) { return true; }
+    }
+
+    window.__mytvChrome = function (strong) {
+      var hidden = 0;
+      try {
+        var vw = window.innerWidth || document.documentElement.clientWidth || 1280;
+        var vh = window.innerHeight || document.documentElement.clientHeight || 720;
+        var nodes = document.querySelectorAll('header, nav, footer, aside, div, section, ul, form, [role="navigation"], [class*="header"], [class*="nav"], [class*="gnb"], [class*="tab"]');
+        var limit = nodes.length > 1500 ? 1500 : nodes.length;
+        for (var i = 0; i < limit; i++) {
+          var el = nodes[i];
+          try {
+            if (!el || el.nodeType !== 1) { continue; }
+            var tag = el.tagName.toLowerCase();
+            if (tag === 'video' || tag === 'audio' || tag === 'html' || tag === 'body') { continue; }
+            if (el.getAttribute('data-mytv-hidden') === '1') { continue; }
+            var cs = window.getComputedStyle(el);
+            if (!cs) { continue; }
+            var pos = cs.position;
+            if (pos !== 'fixed' && pos !== 'sticky') { continue; }
+            if (cs.display === 'none' || cs.visibility === 'hidden' || cs.opacity === '0') { continue; }
+            var r = el.getBoundingClientRect();
+            if (r.height < 18 || r.width < 60) { continue; }
+            if (r.width < vw * (strong ? 0.55 : 0.8)) { continue; }
+            if (r.height > vh * (strong ? 0.34 : 0.22)) { continue; }
+            var nearTop = r.top <= vh * 0.18;
+            var nearBottom = r.bottom >= vh * 0.82;
+            if (!nearTop && !nearBottom) { continue; }
+            if (mytvProtected(el)) { continue; }
+            var zi = parseInt(cs.zIndex, 10);
+            if (isNaN(zi)) { zi = 0; }
+            if (!strong && zi < 20) { continue; }
+            el.setAttribute('data-mytv-hidden', '1');
+            el.setAttribute('data-mytv-display', cs.display || '');
+            el.style.setProperty('display', 'none', 'important');
+            window.__mytvChromeList.push(el);
+            hidden = hidden + 1;
+            if (hidden > 40) { break; }
+          } catch (e2) {}
+        }
+      } catch (e3) {}
+      if (hidden > 0) { window.__mytvChromeOn = true; }
+      return hidden;
+    };
+
+    window.__mytvChromeRestore = function () {
+      var n = 0;
+      try {
+        for (var i = 0; i < window.__mytvChromeList.length; i++) {
+          var el = window.__mytvChromeList[i];
+          try {
+            if (!el) { continue; }
+            el.style.removeProperty('display');
+            var d = el.getAttribute('data-mytv-display');
+            if (d) { el.style.display = d; }
+            el.removeAttribute('data-mytv-hidden');
+            el.removeAttribute('data-mytv-display');
+            n = n + 1;
+          } catch (e) {}
+        }
+      } catch (e2) {}
+      window.__mytvChromeList = [];
+      window.__mytvChromeOn = false;
+      return n;
+    };
+
+    /* ================= v1.2 : 사이트 안 이미지 광고 배너 자동 숨김 ================= */
+
+    window.__mytvAdList = [];
+    window.__mytvBannerOn = true;
+    window.__mytvBannerCount = 0;
+    window.__mytvBannerLast = 0;
+
+    function mytvFlat(el) {
+      try {
+        var t = el.textContent;
+        return String(t || '').replace(/\s+/g, '');
+      } catch (e) { return ''; }
+    }
+
+    function mytvTextLen(el) {
+      try {
+        var t = String(el.textContent || '').trim();
+        if (!t) { return 0; }
+        return t.replace(/\s+/g, ' ').length;
+      } catch (e) { return 0; }
+    }
+
+    function mytvName(el) {
+      try {
+        return String((el.id || '') + ' ' +
+          (el.className && el.className.toString ? el.className.toString() : '')).toLowerCase();
+      } catch (e) { return ''; }
+    }
+
+    function mytvOwnHost(a) {
+      try {
+        var h = String(a.hostname || '').toLowerCase();
+        var here = String(location.hostname || '').toLowerCase();
+        if (!h) { return true; }
+        return h === here;
+      } catch (e) { return true; }
+    }
+
+    function mytvInAd(el) {
+      try {
+        var p = el;
+        var d = 0;
+        while (p && d < 40) {
+          if (p.getAttribute && p.getAttribute('data-mytv-ad') === '1') { return true; }
+          p = p.parentElement;
+          d = d + 1;
+        }
+      } catch (e) {}
+      return false;
+    }
+
+    /* v1.7.1 : 같은 사이트의 작품 상세 주소인지 (/drama/ · /movie/ · /ent/ · /ani/ · /show/ · /tv/) */
+    function mytvContentPath(el) {
+      try {
+        var href = String(el.getAttribute ? (el.getAttribute('href') || '') : '');
+        if (!href) { return false; }
+        var path = href;
+        try { path = String(new URL(href, location.href).pathname || ''); } catch (e0) {}
+        return /^\/(drama|movie|ent|ani|show|tv)(\/|$)/i.test(path);
+      } catch (e) { return false; }
+    }
+
+    /* v1.7.1 : 한 카드(li) 안에 <a class="img"> 포스터 링크와 class="title" 제목 링크가 같이 있는지 */
+    function mytvCardSibling(el) {
+      try {
+        var box = el;
+        var d = 0;
+        while (box && d < 4) {
+          var tag = String(box.tagName || '').toLowerCase();
+          if (tag === 'li') {
+            var links = box.querySelectorAll ? box.querySelectorAll('a[href]') : [];
+            var lim = links.length > 6 ? 6 : links.length;
+            for (var i = 0; i < lim; i++) {
+              var a = links[i];
+              var nm = ' ' + mytvName(a) + ' ';
+              if (/(\s|_|-)(img|title|tit|name)(\s|_|-)/.test(nm)) { return true; }
+              try { if (a.querySelector && a.querySelector('img')) { return true; } } catch (e2) {}
+            }
+          }
+          box = box.parentElement;
+          d = d + 1;
+        }
+      } catch (e) {}
+      return false;
+    }
+
+    /* v1.7.1 : 작품 카드는 무슨 일이 있어도 광고로 숨기지 않는다.
+       예전에는 부모 클래스 이름만 보고 판단해서
+       tvmon 드라마 목록의 <li><a class="img">…</a><a class="title">…</a></li> 카드를
+       놓쳤고, 제목이 6자 이하이면 포스터가 통째로 숨겨졌다(여름방학·키드냅 게임). */
+    function mytvInContent(el) {
+      try {
+        if (!el || el.nodeType !== 1) { return false; }
+        /* ① 목록 카드(li) 안 */
+        try { if (el.closest && el.closest('li')) { return true; } } catch (e1) {}
+        /* ② 같은 사이트의 작품 상세(/drama/ …) 주소 */
+        try { if (mytvOwnHost(el) && mytvContentPath(el)) { return true; } } catch (e3) {}
+        /* ③ 포스터(img) 링크 + 제목(title) 링크가 함께 있는 카드 */
+        try { if (mytvCardSibling(el)) { return true; } } catch (e4) {}
+        var p = el.parentElement;
+        var d = 0;
+        while (p && d < 4) {
+          if (/(poster|thumb|vod|episode|rank|movie|drama|program|series|swiper|slide|card|playlist|item|cell|tile|cover)/.test(mytvName(p))) {
+            return true;
+          }
+          p = p.parentElement;
+          d = d + 1;
+        }
+      } catch (e) {}
+      return false;
+    }
+
+    /* v1.6 : 목록 카드 안의 포스터 이미지인지 — 이 이미지는 절대 숨기지 않는다 */
+    function mytvCardImage(img) {
+      try {
+        if (!img || !img.tagName) { return false; }
+        var t = String(img.tagName).toLowerCase();
+        if (t !== 'img' && t !== 'picture') { return false; }
+        var src = String(img.getAttribute('src') || img.getAttribute('data-src') || '').toLowerCase();
+        if (src.indexOf('/data/banner/') >= 0 || src.indexOf('/ad/') >= 0) { return false; }
+        var p = img.parentElement;
+        var d = 0;
+        while (p && d < 5) {
+          var tag = String(p.tagName || '').toLowerCase();
+          if (tag === 'li') { return true; }
+          var nm = mytvName(p);
+          if (/(item|card|poster|thumb|slide|cell|tile|cover|art)/.test(nm)) { return true; }
+          if (tag === 'body' || tag === 'html') { break; }
+          p = p.parentElement;
+          d = d + 1;
+        }
+      } catch (e) {}
+      return false;
+    }
+
+    /* 숨겨진 카드 포스터가 있으면 되살린다(안전장치) */
+    window.__mytvKeepPosters = function () {
+      var n = 0;
+      try {
+        var imgs = document.querySelectorAll('img');
+        var lim = imgs.length > 600 ? 600 : imgs.length;
+        for (var i = 0; i < lim; i++) {
+          var im = imgs[i];
+          if (!mytvCardImage(im)) { continue; }
+          var cs = window.getComputedStyle ? window.getComputedStyle(im) : null;
+          if (!cs) { continue; }
+          if (cs.display === 'none' || cs.visibility === 'hidden') {
+            var par = im.closest ? im.closest('[data-mytv-ad="1"]') : null;
+            if (par) { continue; }
+            try {
+              im.style.setProperty('display', 'block', 'important');
+              im.style.setProperty('visibility', 'visible', 'important');
+            } catch (e2) {}
+            n = n + 1;
+          }
+        }
+      } catch (e) {}
+      return n;
+    };
+
+    function mytvNameAd(el) {
+      try {
+        var s = mytvName(el);
+        if (!s) { return false; }
+        if (/(banner|sponsor|partner)/.test(s)) { return true; }
+        if (/(^|[\s"'_\-])ad[\-_]/.test(s)) { return true; }
+        if (/(^|[\s"'_\-])ads?([\s"'_\-]|\b)/.test(s)) { return true; }
+      } catch (e) {}
+      return false;
+    }
+
+    function mytvInNav(el) {
+      try {
+        var p = el;
+        var d = 0;
+        while (p && d < 6) {
+          if (p.tagName && p.tagName.toLowerCase() === 'nav') { return true; }
+          p = p.parentElement;
+          d = d + 1;
+        }
+      } catch (e) {}
+      return false;
+    }
+
+    function mytvHeaderLogo(el) {
+      try {
+        var p = el.parentElement;
+        var d = 0;
+        while (p && d < 3) {
+          var nm = mytvName(p);
+          var tg = p.tagName ? p.tagName.toLowerCase() : '';
+          if (nm.indexOf('logo') >= 0) { return true; }
+          if (tg === 'header' || nm.indexOf('header') >= 0) {
+            var links = p.querySelectorAll ? p.querySelectorAll('a[href]') : [];
+            if (links.length <= 2) { return true; }
+          }
+          p = p.parentElement;
+          d = d + 1;
+        }
+      } catch (e) {}
+      return false;
+    }
+
+    function mytvKeep(el) {
+      try {
+        if (!el || el.nodeType !== 1) { return true; }
+        var tag = el.tagName.toLowerCase();
+        if (tag === 'html' || tag === 'body' || tag === 'main' || tag === 'video' ||
+            tag === 'audio' || tag === 'nav' || tag === 'header' || tag === 'footer') { return true; }
+        if (el.querySelector && el.querySelector('video, audio, nav')) { return true; }
+        /* v1.6 : 사이트 머리글·하단 바·카테고리 바는 광고로 오인해 숨기지 않는다 */
+        try {
+          if (el.closest && el.closest('#header_wrap, #footer_wrap, .topbar, #float, header, footer')) { return true; }
+        } catch (e6) {}
+        var id0 = String(el.id || '');
+        if (id0 === 'float' || id0 === 'header_wrap' || id0 === 'footer_wrap' || id0 === 'container' || id0 === 'wrapper') { return true; }
+        if (mytvProtected(el)) { return true; }
+        var p = el.parentElement;
+        var d = 0;
+        while (p && d < 3) {
+          if (p.tagName && p.tagName.toLowerCase() === 'nav') { return true; }
+          p = p.parentElement;
+          d = d + 1;
+        }
+        var links = el.querySelectorAll ? el.querySelectorAll('a[href]') : [];
+        var lim = links.length > 40 ? 40 : links.length;
+        for (var i = 0; i < lim; i++) {
+          if (mytvOwnHost(links[i]) && mytvTextLen(links[i]) >= 2) { return true; }
+        }
+        if (mytvTextLen(el) >= 12) { return true; }
+        if (el.querySelector && el.querySelector('h1, h2, h3')) { return true; }
+      } catch (e) { return true; }
+      return false;
+    }
+
+    function mytvMark(el, kind) {
+      try {
+        if (!el || el.nodeType !== 1) { return 0; }
+        if (el.getAttribute('data-mytv-ad') === '1') { return 0; }
+        el.setAttribute('data-mytv-display', (el.style && el.style.display) || '');
+        el.setAttribute('data-mytv-visibility', (el.style && el.style.visibility) || '');
+        var tab = el.getAttribute('tabindex');
+        el.setAttribute('data-mytv-tab', (tab === null || tab === '') ? '__none__' : tab);
+        var inert = el.getAttribute('inert');
+        el.setAttribute('data-mytv-inert', (inert === null || inert === '') ? '__none__' : inert);
+        el.setAttribute('data-mytv-ad', '1');
+        el.setAttribute('data-mytv-kind', kind || '');
+        if (el.style && el.style.setProperty) {
+          el.style.setProperty('display', 'none', 'important');
+          el.style.setProperty('visibility', 'hidden', 'important');
+        } else {
+          el.style.display = 'none';
+          el.style.visibility = 'hidden';
+        }
+        el.setAttribute('inert', '');
+        el.setAttribute('tabindex', '-1');
+        el.setAttribute('aria-hidden', 'true');
+        try { if (el === document.activeElement && el.blur) { el.blur(); } } catch (e1) {}
+        window.__mytvAdList.push(el);
+        return 1;
+      } catch (e) { return 0; }
+    }
+
+    function mytvChildOff(el) {
+      try {
+        if (!el || el.nodeType !== 1) { return 0; }
+        if (el.getAttribute('data-mytv-ad') === '1') { return 0; }
+        var tab = el.getAttribute('tabindex');
+        el.setAttribute('data-mytv-tab', (tab === null || tab === '') ? '__none__' : tab);
+        var inert = el.getAttribute('inert');
+        el.setAttribute('data-mytv-inert', (inert === null || inert === '') ? '__none__' : inert);
+        el.setAttribute('data-mytv-display', (el.style && el.style.display) || '');
+        el.setAttribute('data-mytv-visibility', (el.style && el.style.visibility) || '');
+        el.setAttribute('data-mytv-ad', '1');
+        el.setAttribute('data-mytv-kind', 'child');
+        el.setAttribute('tabindex', '-1');
+        el.setAttribute('inert', '');
+        el.setAttribute('aria-hidden', 'true');
+        window.__mytvAdList.push(el);
+        return 1;
+      } catch (e) { return 0; }
+    }
+
+    function mytvAdWords(el) {
+      try {
+        var s = String(el.getAttribute('href') || '').toLowerCase() + ' ' + mytvName(el);
+        var imgs = el.querySelectorAll ? el.querySelectorAll('img') : [];
+        var lim = imgs.length > 8 ? 8 : imgs.length;
+        for (var i = 0; i < lim; i++) {
+          s = s + ' ' + String(imgs[i].getAttribute('src') || '').toLowerCase();
+          s = s + ' ' + String(imgs[i].getAttribute('data-src') || '').toLowerCase();
+          s = s + ' ' + String(imgs[i].getAttribute('alt') || '').toLowerCase();
+        }
+        return s;
+      } catch (e) { return ''; }
+    }
+
+    function mytvAdWordHit(s) {
+      if (!s) { return false; }
+      if (/(banner|casino|slot|toto|partner|popup|sponsor|betting|sportsbook)/.test(s)) { return true; }
+      if (/\bbet\d*/.test(s)) { return true; }
+      if (/(^|[^a-z0-9])ads?[_\-\/]/.test(s)) { return true; }
+      if (/\/ads?\//.test(s)) { return true; }
+      if (/\/go\/|\/out\.php|\/link\.php|\/click\.php/.test(s)) { return true; }
+      return false;
+    }
+
+    /* 납작한 띠 모양 배너인지 (가로/세로 >= 1.8, 높이 14~180px) */
+    function mytvGeo(a) {
+      var out = { flat: false, h: 0 };
+      try {
+        var w = 0;
+        var h = 0;
+        var r = a.getBoundingClientRect ? a.getBoundingClientRect() : null;
+        if (r) { w = r.width; h = r.height; }
+        if (w <= 0 || h <= 0) {
+          var img = a.querySelector ? a.querySelector('img') : null;
+          if (img) {
+            w = img.naturalWidth || img.width || 0;
+            h = img.naturalHeight || img.height || 0;
+            if ((w <= 0 || h <= 0) && img.getBoundingClientRect) {
+              var ir = img.getBoundingClientRect();
+              w = ir.width;
+              h = ir.height;
+            }
+          }
+        }
+        out.h = Math.round(h);
+        if (w > 0 && h > 0) {
+          out.flat = (w / h) >= 1.8 && h >= 14 && h <= 180;
+        }
+      } catch (e) {}
+      return out;
+    }
+
+    function mytvImageBanner(a, vw, vh) {
+      var n = 0;
+      try {
+        if (!a || a.nodeType !== 1) { return 0; }
+        if (a.getAttribute('data-mytv-ad') === '1') { return 0; }
+        var href = a.getAttribute('href') || '';
+        if (!href || href.charAt(0) === '#' || href.indexOf('javascript:') === 0) { return 0; }
+        if (a.querySelector && a.querySelector('video, audio')) { return 0; }
+        var media = a.querySelectorAll ? a.querySelectorAll('img, picture') : [];
+        if (!media || media.length < 1) { return 0; }
+        if (a.querySelector && a.querySelector('h1, h2, h3, h4, h5')) { return 0; }
+        if (mytvInNav(a)) { return 0; }
+        if (mytvHeaderLogo(a)) { return 0; }
+        if (mytvInContent(a)) { return 0; }
+
+        var len = mytvTextLen(a);
+        if (len > 12) { return 0; }
+        var r = a.getBoundingClientRect ? a.getBoundingClientRect() : null;
+        if (r && r.width > vw * 0.6 && r.height > vh * 0.45) { return 0; }
+
+        var geo = mytvGeo(a);
+        var own = mytvOwnHost(a);
+        var word = mytvAdWordHit(mytvAdWords(a));
+        var named = false;
+        try {
+          var p0 = a.parentElement;
+          var d0 = 0;
+          while (p0 && d0 < 3) {
+            if (mytvNameAd(p0)) { named = true; break; }
+            p0 = p0.parentElement;
+            d0 = d0 + 1;
+          }
+        } catch (e9) {}
+
+        var isBanner = false;
+        /* v1.7.1 : '글자 6자 이하 + 가로로 넓은 띠' 규칙은 바깥 사이트 링크이거나
+           배너/광고라고 이름 붙은 상자에만 적용한다. 같은 사이트 안의 작품 카드는
+           제목이 짧아도(여름방학 = "대한민국 2") 절대 광고로 숨기지 않는다. */
+        if (len <= 6 && geo.flat && (!own || named)) { isBanner = true; }
+        else if (!own && len === 0) { isBanner = true; }
+        else if (!own && len <= 6 && word) { isBanner = true; }
+        else if (len === 0 && word) { isBanner = true; }
+        else if (len === 0 && named) { isBanner = true; }
+        if (!isBanner) { return 0; }
+
+        n = n + mytvMark(a, word ? 'img-word' : 'img-only');
+
+        var p = a.parentElement;
+        var d = 0;
+        while (p && d < 2) {
+          try {
+            if (!p.tagName) { break; }
+            if (p.tagName.toLowerCase() === 'body') { break; }
+            if (p.getAttribute('data-mytv-ad') === '1') { break; }
+            if (mytvKeep(p)) { break; }
+            if (p.querySelector && p.querySelector('video, audio, nav')) { break; }
+            var kids = p.children ? p.children.length : 9;
+            if (kids > 3) { break; }
+            n = n + mytvMark(p, 'img-wrap');
+          } catch (e1) {}
+          p = p.parentElement;
+          d = d + 1;
+        }
+      } catch (e2) {}
+      return n;
+    }
+
+    window.__mytvHideBanners = function (force) {
+      if (!window.__mytvBannerOn && !force) { return 0; }
+      var hidden = 0;
+      try {
+        if (window.__mytvExplicitAds) { hidden = hidden + window.__mytvExplicitAds(); }
+        var vw = window.innerWidth || document.documentElement.clientWidth || 1280;
+        var vh = window.innerHeight || document.documentElement.clientHeight || 720;
+
+        /* 1) 클래스·아이디에 배너/광고 이름이 들어간 상자 */
+        var nodes = document.querySelectorAll('[class*="banner"], [id*="banner"], [class*="sponsor"], [id*="sponsor"], [class*="partner"], [id*="partner"], [class*="ad-"], [class*="ad_"], [id*="ad_"], [id*="ad-"]');
+        var limit = nodes.length > 400 ? 400 : nodes.length;
+        for (var i = 0; i < limit; i++) {
+          var el = nodes[i];
+          try {
+            if (!el || el.nodeType !== 1) { continue; }
+            if (el.getAttribute('data-mytv-ad') === '1') { continue; }
+            if (mytvInAd(el)) { continue; }
+            if (!mytvNameAd(el)) { continue; }
+            if (mytvKeep(el)) { continue; }
+            var box = el.querySelector ? el.querySelector('img, picture, iframe, ins, object') : null;
+            if (!box) { continue; }
+            hidden = hidden + mytvMark(el, 'name');
+          } catch (e1) {}
+        }
+
+        /* 2) 이미지뿐인 배너 링크 (같은 도메인 리다이렉트 /go/·/banner/·/out.php 포함) */
+        var links = document.querySelectorAll('a[href]');
+        var alim = links.length > 1500 ? 1500 : links.length;
+        for (var j = 0; j < alim; j++) {
+          try {
+            var a = links[j];
+            if (!a || a.nodeType !== 1) { continue; }
+            if (a.getAttribute('data-mytv-ad') === '1') { continue; }
+            if (mytvInAd(a)) { continue; }
+            hidden = hidden + mytvImageBanner(a, vw, vh);
+          } catch (e2) {}
+        }
+
+        /* 3) 숨긴 상자 안의 링크·버튼은 포커스 대상에서도 완전히 제외 */
+        var marked = window.__mytvAdList.slice(0);
+        var mlim = marked.length > 60 ? 60 : marked.length;
+        for (var m = 0; m < mlim; m++) {
+          try {
+            var bx = marked[m];
+            if (!bx || !bx.querySelectorAll) { continue; }
+            var kids = bx.querySelectorAll('a[href], button, [tabindex]');
+            var klim = kids.length > 40 ? 40 : kids.length;
+            for (var k = 0; k < klim; k++) {
+              hidden = hidden + mytvChildOff(kids[k]);
+            }
+          } catch (e3) {}
+        }
+        /* 4) 자식이 전부 배너로 숨겨져서 빈 껍데기만 남은 상자도 함께 숨긴다 */
+        var boxes = document.querySelectorAll('div, section, ul, table');
+        var blim = boxes.length > 900 ? 900 : boxes.length;
+        for (var b = 0; b < blim; b++) {
+          var bx2 = boxes[b];
+          try {
+            if (!bx2 || bx2.nodeType !== 1) { continue; }
+            if (bx2.getAttribute('data-mytv-ad') === '1') { continue; }
+            var kids2 = bx2.children;
+            if (!kids2 || kids2.length < 2 || kids2.length > 60) { continue; }
+            var allAd = true;
+            for (var c2 = 0; c2 < kids2.length; c2++) {
+              var kid2 = kids2[c2];
+              if (kid2.getAttribute && kid2.getAttribute('data-mytv-ad') === '1') { continue; }
+              allAd = false;
+              break;
+            }
+            if (!allAd) { continue; }
+            if (mytvTextLen(bx2) > 0) { continue; }
+            if (mytvKeep(bx2)) { continue; }
+            hidden = hidden + mytvMark(bx2, 'empty-wrap');
+          } catch (e6) {}
+        }
+      } catch (e4) {}
+      window.__mytvBannerCount = window.__mytvAdList.length;
+      return hidden;
+    };
+
+    window.__mytvBannerRestore = function () {
+      var n = 0;
+      try {
+        for (var i = window.__mytvAdList.length - 1; i >= 0; i--) {
+          var el = window.__mytvAdList[i];
+          try {
+            if (!el) { continue; }
+            if (el.style && el.style.removeProperty) {
+              el.style.removeProperty('display');
+              el.style.removeProperty('visibility');
+            } else {
+              el.style.display = '';
+              el.style.visibility = '';
+            }
+            var d = el.getAttribute('data-mytv-display');
+            if (d) { el.style.display = d; }
+            var v = el.getAttribute('data-mytv-visibility');
+            if (v) { el.style.visibility = v; }
+            var tab = el.getAttribute('data-mytv-tab');
+            if (tab === '__none__' || tab === null) { el.removeAttribute('tabindex'); }
+            else { el.setAttribute('tabindex', tab); }
+            var inert = el.getAttribute('data-mytv-inert');
+            if (inert === '__none__' || inert === null) { el.removeAttribute('inert'); }
+            else { el.setAttribute('inert', inert); }
+            el.removeAttribute('data-mytv-ad');
+            el.removeAttribute('data-mytv-kind');
+            el.removeAttribute('data-mytv-display');
+            el.removeAttribute('data-mytv-visibility');
+            el.removeAttribute('data-mytv-tab');
+            el.removeAttribute('data-mytv-inert');
+            el.removeAttribute('aria-hidden');
+            n = n + 1;
+          } catch (e1) {}
+        }
+      } catch (e2) {}
+      window.__mytvAdList = [];
+      window.__mytvBannerCount = 0;
+      return n;
+    };
+
+    function mytvBannerTick() {
+      try {
+        if (!window.__mytvBannerOn) { return 0; }
+        var now = (new Date()).getTime();
+        if (now - window.__mytvBannerLast < 600) { return 0; }
+        window.__mytvBannerLast = now;
+        try { if (window.__mytvNoFocusDots) { window.__mytvNoFocusDots(); } } catch (e2) {}
+        try { if (window.__mytvNoFocusDup) { window.__mytvNoFocusDup(); } } catch (e3) {}
+        try { if (window.__mytvNoFocusBar) { window.__mytvNoFocusBar(); } } catch (e3b) {}
+        try { if (window.__mytvKeepPosters) { window.__mytvKeepPosters(); } } catch (e3c) {}
+        try {
+          if (window.__mytvDetailFocus && (!window.__mytvDetailAt || now - window.__mytvDetailAt > 5000)) {
+            window.__mytvDetailAt = now;
+            window.__mytvDetailFocus();
+          }
+        } catch (e4) {}
+        return window.__mytvHideBanners(false);
+      } catch (e) { return 0; }
+    }
+
+    window.__mytvSetBannerAuto = function (on) {
+      try {
+        /* v1.5 : 도박·배너 차단은 사용자가 끌 수 없다(화면 정리는 상·하단 바만 되돌린다) */
+        window.__mytvBannerOn = true;
+        if (!on) { return 0; }
+        window.__mytvBannerLast = 0;
+        return window.__mytvHideBanners(true);
+      } catch (e) { return 0; }
+    };
+
+    window.__mytvBannerInfo = function () {
+      try {
+        return JSON.stringify({ on: window.__mytvBannerOn, count: window.__mytvAdList.length });
+      } catch (e) { return ''; }
+    };
+
+    setTimeout(function () { try { mytvBannerTick(); } catch (e) {} }, 260);
+    setTimeout(function () { try { mytvBannerTick(); } catch (e) {} }, 1100);
+    setTimeout(function () { try { mytvBannerTick(); } catch (e) {} }, 2400);
+    setInterval(function () { try { mytvBannerTick(); } catch (e) {} }, 3000);
+    /* v1.7.4 : 늦게 뜨는 공지 팝업도 3초 안에 정리한다 */
+    setInterval(function () { try { window.__mytvPopupsOff(); } catch (eP) {} }, 3000);
+
+    try {
+      if (window.MutationObserver) {
+        var mytvMo = new MutationObserver(function () {
+          if (window.__mytvMoTimer) { return; }
+          window.__mytvMoTimer = setTimeout(function () {
+            window.__mytvMoTimer = null;
+            try {
+              var alive = [];
+              for (var i = 0; i < window.__mytvAdList.length; i++) {
+                var one = window.__mytvAdList[i];
+                if (one && one.parentNode) { alive.push(one); }
+              }
+              window.__mytvAdList = alive;
+              mytvBannerTick();
+            } catch (e) {}
+          }, 520);
+        });
+        mytvMo.observe(document.documentElement, { childList: true, subtree: true });
+        window.__mytvMO = mytvMo;
+      }
+    } catch (e) {}
+
+    document.addEventListener('focusin', function (e) {
+      try {
+        var el = e.target;
+        if (el && mytvInAd(el)) {
+          if (el.blur) { el.blur(); }
+        }
+      } catch (err) {}
+    }, true);
+
+    /* ================= v1.2 : 부드러운 페이지 스크롤 ================= */
+
+    function mytvScrollable(el, dy, dx) {
+      try {
+        if (!el || el.nodeType !== 1) { return false; }
+        var cs = window.getComputedStyle ? window.getComputedStyle(el) : null;
+        if (!cs) { return false; }
+        if (dy) {
+          var oy = cs.overflowY;
+          if (oy === 'auto' || oy === 'scroll' || oy === 'overlay') {
+            var maxY = el.scrollHeight - el.clientHeight;
+            if (maxY > 4) {
+              if (dy < 0 && el.scrollTop > 1) { return true; }
+              if (dy > 0 && el.scrollTop < maxY - 1) { return true; }
+            }
+          }
+        }
+        if (dx) {
+          var ox = cs.overflowX;
+          if (ox === 'auto' || ox === 'scroll' || ox === 'overlay') {
+            var maxX = el.scrollWidth - el.clientWidth;
+            if (maxX > 4) {
+              if (dx < 0 && el.scrollLeft > 1) { return true; }
+              if (dx > 0 && el.scrollLeft < maxX - 1) { return true; }
+            }
+          }
+        }
+      } catch (e) {}
+      return false;
+    }
+
+    window.__mytvScrollBy = function (dy, x, y, dx) {
+      try {
+        dy = Number(dy) || 0;
+        dx = Number(dx) || 0;
+        if (!dy && !dx) { return 'none'; }
+        var target = null;
+        try {
+          if (typeof x === 'number' && typeof y === 'number' && document.elementFromPoint) {
+            var el = document.elementFromPoint(x, y);
+            var d = 0;
+            while (el && d < 14) {
+              if (mytvScrollable(el, dy, dx)) { target = el; break; }
+              el = el.parentElement;
+              d = d + 1;
+            }
+          }
+        } catch (e1) {}
+        if (!target) {
+          var all = document.querySelectorAll('div, main, section, article, ul, body');
+          var lim = all.length > 900 ? 900 : all.length;
+          var best = null;
+          var bestArea = 0;
+          for (var i = 0; i < lim; i++) {
+            var c = all[i];
+            if (!mytvScrollable(c, dy, dx)) { continue; }
+            var r = c.getBoundingClientRect();
+            var a = r.width * r.height;
+            if (a > bestArea) { bestArea = a; best = c; }
+          }
+          target = best;
+        }
+        if (target) {
+          if (target.scrollBy) {
+            target.scrollBy({ top: dy, left: dx, behavior: 'smooth' });
+            return 'el';
+          }
+          target.scrollTop = target.scrollTop + dy;
+          target.scrollLeft = target.scrollLeft + dx;
+          return 'el-plain';
+        }
+        var se = document.scrollingElement || document.documentElement;
+        if (se && se.scrollBy) {
+          /* v1.6 : 페이지 전체를 좌우로 밀지 않는다(좌우 글자가 잘리는 원인) */
+          se.scrollBy({ top: dy, left: 0, behavior: 'smooth' });
+          return 'doc';
+        }
+        if (window.scrollBy) { window.scrollBy(dx, dy); return 'win'; }
+      } catch (e2) {}
+      return 'none';
+    };
+
+    /* ================= v1.2 : 방향키 포커스가 막혔는지 확인 ================= */
+
+    window.__mytvFocusState = function () {
+      try {
+        var el = document.activeElement;
+        var vh = window.innerHeight || document.documentElement.clientHeight || 720;
+        var tag = '';
+        var edge = 'none';
+        if (el && el !== document.body && el !== document.documentElement) {
+          tag = String(el.tagName || '') + '|' + String(el.id || '') + '|' +
+            String(el.className && el.className.toString ? el.className.toString() : '') + '|' +
+            String((el.innerText || el.textContent || '')).replace(/\s+/g, '').substring(0, 24);
+          var b = el.getBoundingClientRect ? el.getBoundingClientRect() : null;
+          if (b) {
+            if (b.top >= vh * 0.9) { edge = 'bottom'; }
+            else if (b.bottom <= vh * 0.1) { edge = 'top'; }
+            else { edge = 'mid'; }
+          }
+        }
+        return JSON.stringify({ k: tag, e: edge });
+      } catch (e) { return ''; }
+    };
+
+    document.addEventListener('playing', function (e) {
+      try {
+        var v = e.target;
+        if (!v || v.tagName !== 'VIDEO') { return; }
+        window.__mytvReport();
+        if (window.__mytvFsTried) { return; }
+        window.__mytvFsTried = true;
+        setTimeout(function () { try { window.__mytvFullscreen(); } catch (err) {} }, 1200);
+      } catch (err) {}
+    }, true);
+
+    document.addEventListener('play', function () {
+      try { window.__mytvReport(); } catch (e) {}
+    }, true);
+
+    setInterval(function () { try { window.__mytvHideAds(false); } catch (e) {} }, 3500);
+    setInterval(function () { try { if (window.__mytvChromeOn) { window.__mytvChrome(true); } } catch (e) {} }, 4000);
+    setInterval(function () { try { window.__mytvReport(); } catch (e) {} }, 9000);
+
+    /* ================= v1.3 : 실제 사이트 플레이어(#playerArea) 보호 ================= */
+
+    function mytvPlayerish(el) {
+      try {
+        if (!el || el.nodeType !== 1) { return false; }
+        var p = el;
+        var d = 0;
+        while (p && p.nodeType === 1 && d < 16) {
+          var id = String(p.id || '');
+          if (id === 'playerArea' || id === 'iframeLoading' || id === 'nextEpisodeOverlay' ||
+              id === 'view_iframe' || id === 'player' || id === 'playerWrap' || id === 'player_wrap') { return true; }
+          var cls = String(p.className && p.className.toString ? p.className.toString() : '');
+          if (/embed-container|next-episode-overlay|iframe-loading|player-area|player_wrap|video-js|jwplayer|plyr|artplayer|dplayer|shaka/.test(cls)) { return true; }
+          p = p.parentElement;
+          d = d + 1;
+        }
+      } catch (e) {}
+      return false;
+    }
+
+    window.__mytvPlayerish = mytvPlayerish;
+
+    /* ================= v1.3 : 실제 광고 상자 명시 차단 ================= */
+
+    var MYTV_AD_SELECTORS = [
+      '#adf', '#bannerList',
+      '#banner-row-1', '#banner-row-2', '#banner-row-3', '#banner-row-4',
+      '#fixed-banner-container-1', '#fixed-banner-container-2', '#fixed-banner-container-3',
+      '.banner_wrap2', '.row-banner', '.banner2'
+    ];
+
+    window.__mytvExplicitAds = function () {
+      var n = 0;
+      try {
+        for (var i = 0; i < MYTV_AD_SELECTORS.length; i++) {
+          var nodes = null;
+          try { nodes = document.querySelectorAll(MYTV_AD_SELECTORS[i]); } catch (e0) { continue; }
+          if (!nodes) { continue; }
+          for (var j = 0; j < nodes.length; j++) {
+            var el = nodes[j];
+            try {
+              if (!el || el.nodeType !== 1) { continue; }
+              if (el.getAttribute('data-mytv-ad') === '1') { continue; }
+              if (mytvPlayerish(el)) { continue; }
+              n = n + mytvMark(el, 'explicit');
+              var kids = el.querySelectorAll ? el.querySelectorAll('a[href], button, [tabindex]') : [];
+              var lim = kids.length > 40 ? 40 : kids.length;
+              for (var k = 0; k < lim; k++) {
+                if (mytvPlayerish(kids[k])) { continue; }
+                n = n + mytvChildOff(kids[k]);
+              }
+            } catch (e1) {}
+          }
+        }
+      } catch (e2) {}
+      return n;
+    };
+
+    /* ================= v1.3 : 실제 플레이어 영역 전체화면 ================= */
+
+    window.__mytvFsSaved = [];
+    window.__mytvPlayerFsOn = false;
+
+    /* 원래 style 속성을 통째로 저장했다가 그대로 되돌린다
+       (inset·margin 같은 단축 속성까지 100% 원상복구) */
+    function mytvFsSave(el) {
+      try {
+        if (el.getAttribute('data-mytv-fs') === '1') { return; }
+        window.__mytvFsSaved.push({ el: el, attr: el.getAttribute('style') });
+        el.setAttribute('data-mytv-fs', '1');
+      } catch (e) {}
+    }
+
+    function mytvFsRestoreAll() {
+      try {
+        for (var i = window.__mytvFsSaved.length - 1; i >= 0; i--) {
+          var rec = window.__mytvFsSaved[i];
+          try {
+            var el = rec.el;
+            if (rec.attr === null || rec.attr === undefined) { el.removeAttribute('style'); }
+            else { el.setAttribute('style', rec.attr); }
+            el.removeAttribute('data-mytv-fs');
+          } catch (e1) {}
+        }
+      } catch (e2) {}
+      window.__mytvFsSaved = [];
+    }
+
+    function mytvFsFill(el, z) {
+      try {
+        mytvFsSave(el);
+        el.style.setProperty('position', 'fixed', 'important');
+        el.style.setProperty('top', '0', 'important');
+        el.style.setProperty('left', '0', 'important');
+        el.style.setProperty('right', '0', 'important');
+        el.style.setProperty('bottom', '0', 'important');
+        /* v1.7.3 : inset 축약은 Chrome 87+ 라 구형(51)에서 무시된다 — 위 네 줄로 충분 */
+        el.style.setProperty('width', '100vw', 'important');
+        el.style.setProperty('height', '100vh', 'important');
+        el.style.setProperty('max-width', 'none', 'important');
+        el.style.setProperty('max-height', 'none', 'important');
+        el.style.setProperty('min-width', '0', 'important');
+        el.style.setProperty('min-height', '0', 'important');
+        el.style.setProperty('margin', '0', 'important');
+        el.style.setProperty('padding', '0', 'important');
+        el.style.setProperty('z-index', String(z), 'important');
+        el.style.setProperty('background', '#000', 'important');
+        el.style.setProperty('overflow', 'hidden', 'important');
+        el.style.setProperty('box-sizing', 'border-box', 'important');
+        el.setAttribute('data-mytv-fs', '1');
+        return true;
+      } catch (e) { return false; }
+    }
+
+    function mytvFsStretch(el) {
+      try {
+        if (!el || el.nodeType !== 1) { return; }
+        mytvFsSave(el);
+        el.style.setProperty('width', '100%', 'important');
+        el.style.setProperty('height', '100%', 'important');
+        el.style.setProperty('max-width', 'none', 'important');
+        el.style.setProperty('max-height', 'none', 'important');
+        el.style.setProperty('min-width', '0', 'important');
+        el.style.setProperty('min-height', '0', 'important');
+        el.style.setProperty('border', '0', 'important');
+      } catch (e) {}
+    }
+
+    function mytvFsBridge(on) {
+      try {
+        if (window.MyTvBridge && window.MyTvBridge.onPlayerFs) { window.MyTvBridge.onPlayerFs(on ? 1 : 0); }
+      } catch (e) {}
+    }
+
+    window.__mytvPlayerAreaFs = function (on) {
+      try {
+        if (on === undefined) { on = !window.__mytvPlayerFsOn; }
+        if (on === false || on === 0) {
+          var was = window.__mytvPlayerFsOn;
+          mytvFsRestoreAll();
+          window.__mytvPlayerFsOn = false;
+          try { document.documentElement.classList.remove('mytv-areafs'); } catch (e0) {}
+          if (was) { mytvFsBridge(false); }
+          return JSON.stringify({ ok: was, mode: 'off', label: '' });
+        }
+        if (window.__mytvPlayerFsOn) { return JSON.stringify({ ok: true, mode: 'on', label: '' }); }
+
+        var area = null;
+        try { area = document.getElementById('playerArea'); } catch (e2) {}
+        if (!area) {
+          try {
+            var movs = document.querySelectorAll('.bo_v_mov');
+            if (movs && movs.length > 0) { area = movs[0]; }
+          } catch (e3) {}
+        }
+
+        var mode = 'area';
+        if (!area) {
+          var fr = null;
+          try { fr = document.getElementById('view_iframe'); } catch (e4) {}
+          if (!fr) {
+            try {
+              var list = document.querySelectorAll('iframe');
+              for (var i = 0; i < list.length; i++) {
+                var src = String(list[i].getAttribute('src') || '');
+                if (/player|embed|video|stream|p2p|bunny|cdn/i.test(src)) { fr = list[i]; break; }
+              }
+              if (!fr && list.length > 0) { fr = list[0]; }
+            } catch (e5) {}
+          }
+          if (!fr) { return JSON.stringify({ ok: false, mode: 'none', label: '' }); }
+          area = fr;
+          mode = 'iframe';
+        }
+
+        mytvFsFill(area, 2147483640);
+        if (mode === 'area') {
+          try {
+            var inner = area.querySelectorAll('iframe, .embed-container');
+            for (var j = 0; j < inner.length; j++) { mytvFsStretch(inner[j]); }
+          } catch (e6) {}
+        }
+        try { document.documentElement.classList.add('mytv-areafs'); } catch (e7) {}
+        window.__mytvPlayerFsOn = true;
+        mytvFsBridge(true);
+        var label = area.id ? String(area.id) : (mode === 'area' ? 'playerArea' : 'iframe');
+        return JSON.stringify({ ok: true, mode: mode, label: label });
+      } catch (e) {
+        return JSON.stringify({ ok: false, mode: 'err', label: '' });
+      }
+    };
+
+    window.__mytvPlayerFsState = function () {
+      try { return window.__mytvPlayerFsOn ? '1' : '0'; } catch (e) { return '0'; }
+    };
+
+
+    /* ================= v1.5 : 카드 전체 포커스 표시 ================= */
+    /* TVMON 같은 사이트는 <li><a class="img">포스터</a><a class="title">제목</a></li>
+       구조라 제목 링크에 포커스가 잡히면 제목 밑에 얇은 줄만 생긴다.
+       포커스된 요소를 감싸는 '카드'를 찾아 그 카드 전체를 확대·테두리 처리한다. */
+
+    function mytvCardSizeOK(el) {
+      try {
+        if (!el || el.nodeType !== 1) { return false; }
+        var r = el.getBoundingClientRect();
+        var vw = window.innerWidth || 1280;
+        var vh = window.innerHeight || 720;
+        if (r.width < 60 || r.height < 40) { return false; }
+        /* v1.6 : 섹션·행·래퍼(화면 절반 넘는 상자)에는 포커스 테두리를 그리지 않는다 */
+        if (r.width > vw * 0.55) { return false; }
+        if (r.height > vh * 0.72) { return false; }
+        return true;
+      } catch (e) { return false; }
+    }
+
+    function mytvCardOf(el) {
+      try {
+        if (!el || el.nodeType !== 1) { return null; }
+        var best = null;
+        var p = el;
+        var d = 0;
+        while (p && p.nodeType === 1 && d < 5) {
+          var tag = String(p.tagName || '').toLowerCase();
+          if (tag === 'body' || tag === 'html') { break; }
+          try {
+            if (p.closest && p.closest('header, nav, #header_wrap, #gnb, #snb, #side_wrap, #float, footer, #footer_wrap')) { break; }
+          } catch (e0) {}
+          var imgs = 0;
+          try { imgs = p.querySelectorAll ? p.querySelectorAll('img, picture, video').length : 0; } catch (e0) {}
+          if (p !== el && imgs >= 1) {
+            if (imgs > 2) { break; }
+            var nm = mytvName(p);
+            var cardName = /(^|[\s_-])(card|item|poster|thumb|slide|cell|art|cover)([\s_-]|$)/.test(nm) || tag === 'li';
+            if (cardName && mytvCardSizeOK(p)) { return p; }
+            if (mytvCardSizeOK(p)) { best = p; }
+          }
+          p = p.parentElement;
+          d = d + 1;
+        }
+        return best;
+      } catch (e) { return null; }
+    }
+
+    window.__mytvHot = null;
+
+    function mytvClearHot() {
+      try {
+        if (window.__mytvHot && window.__mytvHot.classList) {
+          window.__mytvHot.classList.remove('mytv-hot');
+        }
+      } catch (e) {}
+      window.__mytvHot = null;
+      try {
+        var ones = document.querySelectorAll('.mytv-hot, .mytv-one, .mytv-ring');
+        for (var i = 0; i < ones.length; i++) {
+          ones[i].classList.remove('mytv-hot');
+          ones[i].classList.remove('mytv-one');
+          ones[i].classList.remove('mytv-ring');
+        }
+      } catch (e2) {}
+    }
+
+    /* v1.7 : 포커스된 항목 하나에만 하늘색 테두리.
+       a/button/input 같은 실제 항목에만 붙이고 ul·li·nav 묶음에는 붙이지 않는다. */
+    function mytvRingOne(el) {
+      try {
+        var target = el;
+        var t = String(el.tagName || '').toLowerCase();
+        if (t !== 'a' && t !== 'button' && t !== 'input' && t !== 'select' && t !== 'textarea') {
+          try { target = el.closest ? el.closest('a, button, input, select, textarea') : null; } catch (e0) { target = null; }
+        }
+        if (!target) { return; }
+        target.classList.add('mytv-ring');
+        window.__mytvHot = target;
+      } catch (e) {}
+    }
+
+    function mytvMarkFocus(el, card) {
+      try {
+        if (!el || el.nodeType !== 1) { return; }
+        mytvClearHot();
+        var chrome = mytvInChrome ? mytvInChrome(el) : false;
+        /* 머리글·서랍 메뉴·하단 바 : 항목 하나에만 테두리를 준다(부모 묶음에는 절대 안 준다) */
+        if (chrome) {
+          mytvRingOne(el);
+          return;
+        }
+        var target = (card && mytvCardSizeOK(card)) ? card : null;
+        if (!target && mytvCardSizeOK(el)) { target = el; }
+        /* 카드가 아닌 큰 섹션·행·래퍼에는 테두리를 그리지 않는다 */
+        if (!target) { mytvRingOne(el); return; }
+        try { target.classList.add('mytv-hot'); window.__mytvHot = target; } catch (e0) { return; }
+        if (target === el) {
+          try { el.classList.add('mytv-one'); } catch (e1) {}
+        }
+        /* 카드가 가로 슬라이더(overflow:hidden) 안에 있어도 테두리 위아래가 잘리지 않게 여백을 준다 */
+        try {
+          var par = target.parentElement;
+          if (par && par !== document.body && !par.getAttribute('data-mytv-padded') &&
+              !/^(header|nav|footer)$/i.test(String(par.tagName || '')) &&
+              String(par.id || '') !== 'float' &&
+              par.children && par.children.length >= 2 && par.children.length <= 40) {
+            par.style.setProperty('padding-top', '10px', 'important');
+            par.style.setProperty('padding-bottom', '10px', 'important');
+            par.setAttribute('data-mytv-padded', '1');
+          }
+        } catch (e4) {}
+      } catch (e) {}
+    }
+
+    function mytvTiny(el) {
+      try {
+        if (!el || el.nodeType !== 1) { return false; }
+        if (mytvProtected(el)) { return false; }
+        var r = el.getBoundingClientRect();
+        if (r.width <= 26 && r.height <= 26 && r.width > 0 && r.height > 0) { return true; }
+      } catch (e) {}
+      return false;
+    }
+
+    function mytvDot(el) {
+      try {
+        if (!el || el.nodeType !== 1) { return false; }
+        if (el.getAttribute && el.getAttribute('data-mytv-dot') === '1') { return true; }
+        var nm = '';
+        try { nm = String((el.id || '') + ' ' + (el.className && el.className.toString ? el.className.toString() : '')).toLowerCase(); } catch (e0) {}
+        if (/(pagination|bullet|indicator|swiper-button|slick-dots|tablist|dot)/.test(nm)) { return true; }
+        var p = el.parentElement;
+        var d = 0;
+        while (p && d < 2) {
+          var pn = '';
+          try { pn = String((p.id || '') + ' ' + (p.className && p.className.toString ? p.className.toString() : '')).toLowerCase(); } catch (e1) {}
+          if (/(pagination|slick-dots|tablist|indicator)/.test(pn)) { return true; }
+          p = p.parentElement;
+          d = d + 1;
+        }
+        return mytvTiny(el);
+      } catch (e2) { return false; }
+    }
+
+    function mytvBlockDot(el) {
+      try {
+        if (!el || el.nodeType !== 1) { return 0; }
+        el.setAttribute('data-mytv-dot', '1');
+        el.setAttribute('tabindex', '-1');
+        el.setAttribute('aria-hidden', 'true');
+        return 1;
+      } catch (e) { return 0; }
+    }
+
+    window.__mytvNoFocusDots = function () {
+      var n = 0;
+      try {
+        var list = document.querySelectorAll('.swiper-pagination, .swiper-pagination-bullet, .owl-dot, .slick-dots button, [role="tablist"], [class*="pagination"] button, [class*="bullet"], [class*="dot"]');
+        var lim = list.length > 80 ? 80 : list.length;
+        for (var i = 0; i < lim; i++) {
+          var el = list[i];
+          if (!el || mytvProtected(el)) { continue; }
+          n = n + mytvBlockDot(el);
+        }
+      } catch (e) {}
+      return n;
+    };
+
+    document.addEventListener('focusin', function (e) {
+      try {
+        var el = e.target;
+        if (!el || el.nodeType !== 1) { return; }
+        if (mytvInAd(el)) {
+          try { if (el.blur) { el.blur(); } } catch (e0) {}
+          return;
+        }
+        if (el.getAttribute && el.getAttribute('data-mytv-dup') === '1') {
+          var ia = mytvImgLinkOf(el);
+          if (ia) { mytvFocusEl(ia, 1); }
+          return;
+        }
+        if (mytvDot(el)) {
+          /* 캐러셀 점·작은 장식 버튼에 포커스가 들어가면 리모컨이 죽는다 → 즉시 되돌린다 */
+          mytvBlockDot(el);
+          try { if (el.blur) { el.blur(); } } catch (e3) {}
+          var near = mytvFirst();
+          if (near) { mytvFocusEl(near, 1); }
+          return;
+        }
+        var card = mytvCardOf(el);
+        mytvMarkFocus(el, card);
+        window.__mytvCur = el;
+      } catch (err) {}
+    }, true);
+
+    document.addEventListener('focusout', function (e) {
+      try {
+        var el = e.target;
+        if (!el) { return; }
+        setTimeout(function () {
+          try {
+            var a = document.activeElement;
+            if (!a || a === document.body || a === document.documentElement) {
+              mytvClearHot();
+              return;
+            }
+            if (a !== el) { return; }
+          } catch (e2) {}
+        }, 30);
+      } catch (err) {}
+    }, true);
+
+    /* v1.6 : 상세 페이지 입력칸(회차 검색 등)에서 ↓·← 를 누르면 회차 링크로 바로 빠져나온다 */
+    document.addEventListener('keydown', function (e) {
+      try {
+        var t = e.target;
+        if (!t || !t.tagName) { return; }
+        var tag = String(t.tagName).toLowerCase();
+        if (tag !== 'input' && tag !== 'textarea') { return; }
+        var k = e.keyCode;
+        if (k !== 40 && k !== 37) { return; }
+        var onlyDetail = mytvIsDetail() || String(t.id || '') === 'subSearch';
+        if (!onlyDetail) { return; }
+        var cands = document.querySelectorAll('#other_list li a[href], a.ep-link, .ep-item a, .ep-list a[href]');
+        var next = null;
+        for (var i = 0; i < cands.length; i++) {
+          if (!mytvShown(cands[i])) { continue; }
+          next = cands[i];
+          break;
+        }
+        if (!next) { return; }
+        e.preventDefault();
+        try { if (t.blur) { t.blur(); } } catch (e1) {}
+        mytvFocusEl(next, 1);
+        try { mytvMarkFocus(next, mytvCardOf(next)); } catch (e2) {}
+        window.__mytvCur = next;
+      } catch (err) {}
+    }, true);
+
+    /* ================= v1.5 : 리모컨 공간 탐색 ================= */
+    /* WebView 자체 포커스 이동에 기대지 않고 Kotlin 이 방향키를 넘겨주면
+       JS 가 화면 좌표로 다음 요소를 골라 포커스 + 스크롤을 직접 처리한다. */
+
+    window.__mytvNavOn = 0;
+    window.__mytvInputFocus = 0;
+
+    /* ================= v1.7 : 1줄씩 이동하는 공간 탐색 ================= */
+    /* 화면에 보이는 좌표가 아니라 문서 전체 좌표(rect + scroll)로 줄(row)을 만들고,
+       ↓/↑ 는 '바로 다음 줄 / 바로 위 줄'의 카드 1개로만 이동한다.
+       v1.6 처럼 45% 를 임의로 스크롤한 뒤 다시 찾지 않으므로
+       두세 줄씩 건너뛰는 일이 없다. */
+
+    function mytvEditable(el) {
+      try {
+        if (!el || !el.tagName) { return false; }
+        var t = String(el.tagName).toLowerCase();
+        if (t === 'input' || t === 'textarea' || t === 'select') { return true; }
+        if (t === 'button') { return false; }
+        if (el.isContentEditable) { return true; }
+      } catch (e) {}
+      return false;
+    }
+
+    function mytvShown(el) {
+      try {
+        if (!el || el.nodeType !== 1) { return false; }
+        if (el.getAttribute && el.getAttribute('data-mytv-ad') === '1') { return false; }
+        var up = el;
+        var d = 0;
+        while (up && d < 3) {
+          if (up.getAttribute && up.getAttribute('data-mytv-ad') === '1') { return false; }
+          up = up.parentElement;
+          d = d + 1;
+        }
+        if (el.getAttribute && el.getAttribute('data-mytv-dot') === '1') { return false; }
+        if (el.getAttribute && el.getAttribute('data-mytv-dup') === '1') { return false; }
+        if (el.getAttribute && el.getAttribute('data-mytv-off') === '1') { return false; }
+        /* v1.7.1 : 회차 검색 입력칸처럼 일부러 뺀 칸 */
+        if (el.getAttribute && el.getAttribute('data-mytv-nofocus') === '1') { return false; }
+        var r = el.getBoundingClientRect();
+        if (r.width < 8 || r.height < 8) { return false; }
+        if (r.width <= 26 && r.height <= 26 && !mytvProtected(el)) { return false; }
+        var cs = window.getComputedStyle ? window.getComputedStyle(el) : null;
+        if (!cs) { return false; }
+        if (cs.display === 'none' || cs.visibility === 'hidden' || cs.opacity === '0') { return false; }
+        return true;
+      } catch (e) { return false; }
+    }
+
+    function mytvInBar(el) {
+      try {
+        var p = el;
+        var d = 0;
+        while (p && p.nodeType === 1 && d < 6) {
+          if (String(p.id || '') === 'float') { return true; }
+          p = p.parentElement;
+          d = d + 1;
+        }
+      } catch (e) {}
+      return false;
+    }
+
+    /* 맨 아래 푸터(대피소·광고문의·오류제보·저작권)는 포커스에서 뺀다 */
+    function mytvInFooter(el) {
+      try {
+        if (!el || !el.closest) { return false; }
+        return !!(el.closest('footer, #footer_wrap, #bo_v_bot_info, #bo_v_bot, #bo_v_bot_info_wrap, .footer, .copyright, .copy'));
+      } catch (e) { return false; }
+    }
+
+    /* 머리글·서랍 메뉴·하단 바처럼 화면에 고정된 틀 안의 요소인지 */
+    function mytvInChrome(el) {
+      try {
+        if (!el || !el.closest) { return false; }
+        return !!(el.closest('#header_wrap, #side_wrap, #gnb, #snb, #float, header, footer, #footer_wrap'));
+      } catch (e) { return false; }
+    }
+
+    /* position:fixed / sticky 줄기에 있으면 1 (스크롤해도 화면에 붙어 있는 요소) */
+    function mytvFixedChain(el) {
+      try {
+        if (!el) { return 0; }
+        var memo = el['__mytvFixed'];
+        if (memo !== undefined && memo !== null) { return memo; }
+        var p = el;
+        var d = 0;
+        var res = 0;
+        while (p && p.nodeType === 1 && d < 12) {
+          var cs = window.getComputedStyle ? window.getComputedStyle(p) : null;
+          if (cs && (cs.position === 'fixed' || cs.position === 'sticky')) { res = 1; break; }
+          p = p.parentElement;
+          d = d + 1;
+        }
+        try { el['__mytvFixed'] = res; } catch (e0) {}
+        return res;
+      } catch (e) { return 0; }
+    }
+
+    /* 문서 좌표 + 화면 좌표를 함께 담은 기하 정보 */
+    function mytvGeom(el) {
+      var r = el.getBoundingClientRect();
+      var sx = window.scrollX || document.documentElement.scrollLeft || 0;
+      var sy = window.scrollY || document.documentElement.scrollTop || 0;
+      return {
+        el: el,
+        l: r.left + sx, t: r.top + sy, r: r.right + sx, b: r.bottom + sy,
+        w: r.width, h: r.height,
+        vt: r.top, vb: r.bottom, vl: r.left, vr: r.right,
+        cx: r.left + r.width / 2 + sx, cy: r.top + r.height / 2 + sy,
+        fixed: mytvFixedChain(el)
+      };
+    }
+
+    function mytvCandidates(allowBar) {
+      var out = [];
+      try {
+        var list = document.querySelectorAll('a[href], button, [role="button"], input, select, textarea, [tabindex]');
+        var lim = list.length > 2600 ? 2600 : list.length;
+        for (var i = 0; i < lim; i++) {
+          var c = list[i];
+          if (!c) { continue; }
+          var tag = String(c.tagName || '').toLowerCase();
+          if (tag === 'html' || tag === 'body') { continue; }
+          var ti = c.getAttribute('tabindex');
+          if (ti !== null && ti !== '' && parseInt(ti, 10) < 0) { continue; }
+          if (c.type === 'hidden') { continue; }
+          if (!allowBar && mytvInBar(c)) { continue; }
+          if (mytvInFooter(c)) { continue; }
+          if (!mytvShown(c)) { continue; }
+          out.push(mytvGeom(c));
+        }
+      } catch (e) {}
+      return out;
+    }
+
+    function mytvCardRoot(el) {
+      try { return (el && el.closest) ? el.closest('li, .item, .card, .poster, article') : null; } catch (e) { return null; }
+    }
+
+    /* 세로로 겹치는 정도로 같은 줄을 묶는다. 카드 한 줄 = 한 row.
+       같은 카드(li/.item) 안의 포스터 링크와 제목 링크는 높이가 달라도 한 줄로 본다. */
+    function mytvRows(list) {
+      var s = list.slice().sort(function (a, b) { return (a.t - b.t) || (a.l - b.l); });
+      var rows = [];
+      for (var i = 0; i < s.length; i++) {
+        var it = s[i];
+        var placed = false;
+        var root = mytvCardRoot(it.el);
+        for (var k = rows.length - 1; k >= 0 && k >= rows.length - 6; k--) {
+          var row = rows[k];
+          if (root && row.root && root === row.root) { placed = true; }
+          if (!placed) {
+            var ov = Math.min(row.b, it.b) - Math.max(row.t, it.t);
+            var mh = Math.min(row.b - row.t, it.h);
+            if (ov > Math.max(6, mh * 0.45)) { placed = true; }
+          }
+          if (placed) {
+            row.items.push(it);
+            if (it.t < row.t) { row.t = it.t; }
+            if (it.b > row.b) { row.b = it.b; }
+            break;
+          }
+        }
+        if (!placed) { rows.push({ t: it.t, b: it.b, items: [it], root: root }); }
+      }
+      rows.sort(function (a, b) { return a.t - b.t; });
+      return rows;
+    }
+
+    /* 사진 없이 작은 글자 링크 하나만 있는 줄 (섹션 머리글의 '전체보기 >' 등) */
+    function mytvRowIsLink(row) {
+      try {
+        for (var i = 0; i < row.items.length; i++) {
+          var it = row.items[i];
+          var el = it.el;
+          var media = false;
+          try { media = !!(el.querySelector && el.querySelector('img, picture, video')); } catch (e0) {}
+          if (media || it.w >= 160 || it.h >= 56) { return false; }
+        }
+        return true;
+      } catch (e) { return false; }
+    }
+
+    function mytvRowIndexOf(rows, el) {
+      for (var i = 0; i < rows.length; i++) {
+        for (var j = 0; j < rows[i].items.length; j++) {
+          if (rows[i].items[j].el === el) { return i; }
+        }
+      }
+      return -1;
+    }
+
+    function mytvNearestInRow(row, cx, dxDir) {
+      var best = null;
+      var bestD = 1e9;
+      for (var i = 0; i < row.items.length; i++) {
+        var it = row.items[i];
+        var d = Math.abs(it.cx - cx);
+        if (dxDir > 0 && it.cx <= cx + 4) { continue; }
+        if (dxDir < 0 && it.cx >= cx - 4) { continue; }
+        if (d < bestD) { bestD = d; best = it; }
+      }
+      return best;
+    }
+
+    /* dir 1 = 다음 줄, -1 = 위 줄. 머리글 링크만 있는 줄은
+       현재 카드와 가로로 멀면 건너뛰어 '전체보기'에서 멈추지 않게 한다. */
+    function mytvStepRow(cur, rows, dir, vw) {
+      var ri = mytvRowIndexOf(rows, cur.el);
+      if (ri < 0) { return null; }
+      var i = ri + dir;
+      var guard = 0;
+      while (i >= 0 && i < rows.length && guard < 14) {
+        var row = rows[i];
+        if (row.items.length === 1 && mytvRowIsLink(row)) {
+          var only = row.items[0];
+          if (Math.abs(only.cx - cur.cx) > vw * 0.25) { i = i + dir; guard = guard + 1; continue; }
+        }
+        return mytvNearestInRow(row, cur.cx, 0);
+      }
+      return null;
+    }
+
+    function mytvFirstItem(list, vh) {
+      var best = null;
+      for (var i = 0; i < list.length; i++) {
+        var it = list[i];
+        if (it.fixed) { continue; }
+        if (it.vb < 4) { continue; }
+        if (it.vt > vh - 4) { continue; }
+        if (!best || it.vt < best.vt) { best = it; }
+      }
+      if (best) { return best; }
+      for (var j = 0; j < list.length; j++) {
+        if (!list[j].fixed) { return list[j]; }
+      }
+      return null;
+    }
+
+    /* 포커스 + 화면 맞춤. 문서를 좌우로 밀지 않는다. */
+    function mytvFocusItem(it) {
+      try {
+        var el = it.el;
+        try { el.focus({ preventScroll: true }); } catch (e1) { try { el.focus(); } catch (e2) {} }
+        var r = el.getBoundingClientRect();
+        var vw = window.innerWidth || 1280;
+        var vh = window.innerHeight || 720;
+        if (r.top < vh * 0.10 || r.bottom > vh * 0.90 || r.left < vw * 0.04 || r.right > vw * 0.96) {
+          try {
+            if (el.scrollIntoView) {
+              el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
+            }
+          } catch (e3) {}
+        }
+        var se = document.scrollingElement || document.documentElement;
+        if (se && se.scrollLeft) {
+          if (window.scrollTo) { window.scrollTo({ left: 0, top: window.scrollY || se.scrollTop, behavior: 'instant' }); }
+          else { se.scrollLeft = 0; }
+        }
+        try { mytvMarkFocus(el, mytvCardOf(el)); } catch (e4) {}
+        window.__mytvCur = el;
+        return true;
+      } catch (e) { return false; }
+    }
+
+    function mytvImgLinkOf(el) {
+      try {
+        var p = el.parentElement;
+        if (!p || !p.querySelectorAll) { return null; }
+        var list = p.querySelectorAll('a[href]');
+        var href = String(el.href || '');
+        for (var i = 0; i < list.length; i++) {
+          var c = list[i];
+          if (c === el) { continue; }
+          if (!c.querySelector || !c.querySelector('img')) { continue; }
+          if (String(c.href || '') === href) { return c; }
+        }
+      } catch (e) {}
+      return null;
+    }
+
+    /* v1.6 호환 : 예전 코드가 부르는 이름들 */
+    window.__mytvNoFocusBar = function () { return 0; };
+
+    function mytvFocusEl(el) {
+      try {
+        if (!el || el.nodeType !== 1) { return false; }
+        return mytvFocusItem(mytvGeom(el));
+      } catch (e) { return false; }
+    }
+
+    function mytvFirst() {
+      try {
+        var f = mytvFirstItem(mytvCandidates(true), window.innerHeight || 720);
+        return f ? f.el : null;
+      } catch (e) { return null; }
+    }
+
+    /* 같은 작품에 포스터 링크 + 제목 링크가 따로 있으면 제목 링크는 포커스에서 뺀다 */
+    window.__mytvNoFocusDup = function () {
+      var n = 0;
+      try {
+        var links = document.querySelectorAll('a[href]');
+        var lim = links.length > 1500 ? 1500 : links.length;
+        for (var i = 0; i < lim; i++) {
+          var a = links[i];
+          if (!a || a.getAttribute('data-mytv-dup') === '1') { continue; }
+          if (a.querySelector && a.querySelector('img, picture, video')) { continue; }
+          var txt = String(a.textContent || '').replace(/\s+/g, '');
+          if (!txt || txt.length > 40) { continue; }
+          if (mytvInBar(a)) { continue; }
+          var img = mytvImgLinkOf(a);
+          if (!img) { continue; }
+          a.setAttribute('data-mytv-dup', '1');
+          a.setAttribute('tabindex', '-1');
+          a.setAttribute('aria-hidden', 'true');
+          n = n + 1;
+        }
+      } catch (e) {}
+      return n;
+    };
+
+    window.__mytvKey = function (dir) {
+      try {
+        if (mytvEditable(document.activeElement)) { return 'native'; }
+        var vw = window.innerWidth || 1280;
+        var vh = window.innerHeight || 720;
+        var cur = document.activeElement;
+        if (cur && (cur === document.body || cur === document.documentElement || mytvDot(cur) || !mytvShown(cur))) {
+          if (cur && cur !== document.body && cur !== document.documentElement && mytvDot(cur)) { mytvBlockDot(cur); }
+          cur = null;
+        }
+        var all = mytvCandidates(true);
+        var curG = null;
+        for (var c = 0; c < all.length; c++) {
+          if (all[c].el === cur) { curG = all[c]; break; }
+        }
+        if (!curG && cur) { curG = mytvGeom(cur); }
+
+        if (!curG) {
+          var f = null;
+          if (dir === -1) {
+            /* 맨 아래까지 내려온 뒤 ↑ : 화면에 보이는 가장 아래 콘텐츠 줄로 복귀 */
+            var vis = [];
+            for (var v0 = 0; v0 < all.length; v0++) {
+              if (all[v0].fixed) { continue; }
+              if (all[v0].vb > 6 && all[v0].vt < vh) { vis.push(all[v0]); }
+            }
+            if (vis.length) {
+              var lowRow = mytvRows(vis);
+              var lastRow = lowRow[lowRow.length - 1];
+              f = mytvNearestInRow(lastRow, vw / 2, 0);
+            }
+          }
+          if (!f) { f = mytvFirstBodyItem(vh); }
+          if (f) { mytvFocusItem(f); return 'recover'; }
+          return 'none';
+        }
+
+        var same = [];
+        var other = [];
+        for (var i = 0; i < all.length; i++) {
+          if (all[i].fixed === curG.fixed) { same.push(all[i]); }
+          else { other.push(all[i]); }
+        }
+
+        var next = null;
+
+        if (dir === 1 || dir === -1) {
+          var rows = mytvRows(same);
+          next = mytvStepRow(curG, rows, dir, vw);
+          if (!next) {
+            /* 줄이 더 없으면 다른 층(하단 바·서랍)에서 바로 아래/위 요소 하나 */
+            var orows = mytvRows(other);
+            if (orows.length) {
+              if (dir === 1) {
+                for (var a1 = 0; a1 < orows.length && !next; a1++) {
+                  if (orows[a1].t > curG.b - 2) { next = mytvNearestInRow(orows[a1], curG.cx, 0); }
+                }
+              }
+              for (var a2 = orows.length - 1; a2 >= 0 && !next; a2--) {
+                if (dir === -1 && orows[a2].b < curG.t + 2) { next = mytvNearestInRow(orows[a2], curG.cx, 0); }
+              }
+            }
+          }
+        } else {
+          var rows2 = mytvRows(same);
+          var ri = mytvRowIndexOf(rows2, curG.el);
+          if (ri >= 0) { next = mytvNearestInRow(rows2[ri], curG.cx, dir); }
+          if (!next) {
+            /* 같은 줄에 더 없으면 화면상 같은 높이의 이웃(서랍 ↔ 본문)으로 */
+            var cand = [];
+            for (var b1 = 0; b1 < all.length; b1++) {
+              var cp = all[b1];
+              if (cp.el === curG.el) { continue; }
+              var ov2 = Math.min(cp.b, curG.b) - Math.max(cp.t, curG.t);
+              if (ov2 < Math.min(cp.h, curG.h) * 0.4) { continue; }
+              cand.push(cp);
+            }
+            next = mytvNearestInRow({ items: cand }, curG.cx, dir);
+          }
+        }
+
+        if (next) {
+          mytvFocusItem(next);
+          window.__mytvNavStat = (dir === 1 ? 'down' : dir === -1 ? 'up' : dir === 2 ? 'right' : 'left');
+          return 'moved';
+        }
+
+        /* v1.7.1 : 위로 갈 곳이 없으면(이전화·다음화·첫 회차 등) 맨 위 영상 화면으로 되돌린다 */
+        if (dir === -1) {
+          try {
+            if (window.scrollTo) { window.scrollTo({ top: 0, left: 0, behavior: 'smooth' }); }
+            window.__mytvNavStat = 'top';
+            return 'top';
+          } catch (e5b) {}
+        }
+        /* 마지막 줄에서만: 다음 내용을 불러오도록 조금 스크롤 (재탐색 없음) */
+        if (dir === 1) {
+          try {
+            var se2 = document.scrollingElement || document.documentElement;
+            var maxY = se2 ? (se2.scrollHeight - se2.clientHeight) : 0;
+            if (se2 && se2.scrollTop < maxY - 2) {
+              if (window.scrollTo) { window.scrollTo({ top: se2.scrollTop + Math.round(vh * 0.6), behavior: 'smooth' }); }
+              else { se2.scrollTop = se2.scrollTop + Math.round(vh * 0.6); }
+              window.__mytvNavStat = 'page-scroll';
+              return 'scroll';
+            }
+          } catch (e5) {}
+        }
+        return 'edge';
+      } catch (e) { return 'err'; }
+    };
+
+    window.__mytvNavState = function () {
+      try {
+        var a = document.activeElement;
+        var k = '';
+        if (a && a !== document.body) {
+          k = String(a.tagName || '') + '|' + String(a.id || '') + '|' +
+            String(a.className && a.className.toString ? a.className.toString() : '');
+        }
+        return JSON.stringify({ on: window.__mytvNavOn, inp: window.__mytvInputFocus, k: k, hot: !!window.__mytvHot });
+      } catch (e) { return ''; }
+    };
+
+    window.__mytvNavOn = 1;
+
+    document.addEventListener('focusin', function (e) {
+      try {
+        window.__mytvInputFocus = mytvEditable(e.target) ? 1 : 0;
+        if (window.MyTvBridge && window.MyTvBridge.onInputFocus) {
+          window.MyTvBridge.onInputFocus(window.__mytvInputFocus);
+        }
+        /* v1.7.1 : 영상 화면 포커스 칸에 있으면 OK = 재생/일시정지 */
+        try {
+          var st1 = document.getElementById('mytv-player-stop');
+          var onStop = (st1 && e.target === st1) ? 1 : 0;
+          if (window.MyTvBridge && window.MyTvBridge.onPlayerStop) {
+            window.MyTvBridge.onPlayerStop(onStop);
+          }
+        } catch (e5) {}
+      } catch (err) {}
+    }, true);
+
+    /* v1.7.1 : 사용자가 회차를 직접 눌러 재생을 시작하면 앱에 알린다
+       (그때만 시네마·전용 플레이어로 넘어가고, 첫 진입에서는 화면을 잠그지 않는다) */
+    document.addEventListener('click', function (e) {
+      try {
+        var t = e.target;
+        if (!t || !t.closest) { return; }
+        var a = t.closest('a.ep-link, .ep-item a, #other_list li a, #playNextBtn');
+        if (!a) { return; }
+        if (window.MyTvBridge && window.MyTvBridge.onWatchIntent) {
+          window.MyTvBridge.onWatchIntent();
+        }
+      } catch (err) {}
+    }, true);
+
+    /* ================= v1.5 : TVMON 도박 배너 전용 차단 ================= */
+
+    function mytvTvmonStyle() {
+      try {
+        if (document.getElementById('mytv-tvmon')) { return; }
+        var css2 = [
+          '.banner_wrap2, .banner_wrap, #banner-row-1, #banner-row-2, #banner-row-3, #banner-row-4,',
+          '#fixed-banner-container-1, #fixed-banner-container-2, #fixed-banner-container-3,',
+          '#single-banner-container, .row-banner {',
+          '  display: none !important; visibility: hidden !important;',
+          '  height: 0 !important; width: 0 !important; margin: 0 !important; padding: 0 !important;',
+          '}',
+          'img[src*="/data/banner/"], img[src*="/AD/"] { display: none !important; }'
+        ].join('\n');
+        var st2 = document.createElement('style');
+        st2.id = 'mytv-tvmon';
+        st2.appendChild(document.createTextNode(css2));
+        (document.head || document.documentElement).appendChild(st2);
+      } catch (e) {}
+    }
+
+    window.__mytvExplicitAds = function () {
+      var n = 0;
+      try {
+        mytvTvmonStyle();
+        var boxes = document.querySelectorAll('.banner_wrap2, .banner_wrap, #banner-row-1, #banner-row-2, #banner-row-3, #banner-row-4, #fixed-banner-container-1, #fixed-banner-container-2, #fixed-banner-container-3, #single-banner-container, .row-banner');
+        for (var i = 0; i < boxes.length; i++) {
+          var b = boxes[i];
+          if (!b || !b.parentNode) { continue; }
+          if (b.getAttribute('data-mytv-ad') === '1') { continue; }
+          n = n + mytvMark(b, 'tvmon-banner');
+          try {
+            var kids = b.querySelectorAll('a, button, [tabindex]');
+            for (var k = 0; k < kids.length; k++) { mytvChildOff(kids[k]); }
+          } catch (e2) {}
+        }
+        var host = String(location.hostname || '').toLowerCase();
+        if (host.indexOf('tvmon') >= 0 || host.indexOf('tvwiki') >= 0) {
+          var links = document.querySelectorAll('a[href]');
+          var lim = links.length > 1200 ? 1200 : links.length;
+          for (var j = 0; j < lim; j++) {
+            var a = links[j];
+            if (!a || a.getAttribute('data-mytv-ad') === '1') { continue; }
+            if (mytvInBar(a)) { continue; }
+            if (!a.querySelector || !a.querySelector('img')) { continue; }
+            var txt = String(a.textContent || '').replace(/\s+/g, '');
+            if (txt.length > 8) { continue; }
+            var external = false;
+            try {
+              var h = String(a.hostname || '');
+              if (h && h !== location.hostname && h.indexOf('tvmon') < 0 && h.indexOf('tvwiki') < 0) { external = true; }
+            } catch (e3) {}
+            if (!external) { continue; }
+            n = n + mytvMark(a, 'ext-img');
+          }
+        }
+      } catch (e) {}
+      return n;
+    };
+
+    /* ================= v1.5 : 상세·회차 페이지 포커스 정리 ================= */
+    /* 상세 페이지에서는 설명·태그·공유·댓글·목록 링크에 포커스가 걸리지 않게 하고
+       플레이어 / 회차 / 다음화 / 검색·메뉴만 남긴다. */
+
+    function mytvIsDetail() {
+      try {
+        var seg = String(location.pathname || '').split('/');
+        var parts = [];
+        for (var i = 0; i < seg.length; i++) { if (seg[i]) { parts.push(seg[i]); } }
+        if (parts.length < 2) { return false; }
+        return parts[1].length > 0 && !/[^0-9]/.test(parts[1]);
+      } catch (e) { return false; }
+    }
+
+    window.__mytvCinema = function (on, full) {
+      try {
+        var de = document.documentElement;
+        if (on) { de.classList.add('mytv-cinema'); }
+        else { de.classList.remove('mytv-cinema'); }
+        window.__mytvCinemaOn = on ? 1 : 0;
+        try { if (window.__mytvCatsHide) { window.__mytvCatsHide(on ? true : false); } } catch (e0d) {}
+        if (full) { de.classList.add('mytv-cine-full'); }
+        else { de.classList.remove('mytv-cine-full'); }
+        /* v1.7.2 : 전체화면 재생도 같은 꽉 찬 시청 화면(mytv-watch)을 쓴다 */
+        if (on && full) {
+          de.classList.add('mytv-watch');
+          if (window.__mytvWatchBg) { window.__mytvWatchBg(true); }
+          if (window.__mytvFitPlayer) { window.__mytvFitPlayer(); }
+        } else if (!on) {
+          de.classList.remove('mytv-watch');
+          if (window.__mytvWatchBg) { window.__mytvWatchBg(false); }
+        }
+        return 'ok';
+      } catch (e) { return 'err'; }
+    };
+
+    window.__mytvCineFull = function () {
+      try { return document.documentElement.classList.contains('mytv-cine-full') ? '1' : '0'; } catch (e) { return '0'; }
+    };
+
+    /* ================= v1.7.1 : 상세 페이지 · 시청 화면 ================= */
+
+    window.__mytvCinemaOn = 0;
+    window.__mytvWatchOn = 0;
+    /* v1.7.2 : 사용자가 직접 시청 화면을 끄면(BACK·▼) 늦은 재시도로 다시 켜지 않는다 */
+    window.__mytvWatchOff = 0;
+
+    /* v1.7.1 : 영상 위에 남아 있는 카테고리 칩 줄(영화·한국영화·드라마…)을 찾아 숨긴다.
+       시네마(영상만 크게)·전체화면에서 영상만 보이게. */
+    var MYTV_CAT_HREF = ['/movie', '/kor_movie', '/drama', '/ent', '/sisa', '/world',
+      '/ott_ent', '/animation', '/ani_movie', '/old_ent', '/old_drama', '/short'];
+
+    window.__mytvCatsHide = function (on) {
+      var n = 0;
+      try {
+        var boxes = [];
+        var links = document.querySelectorAll('a[href]');
+        var lim = links.length > 900 ? 900 : links.length;
+        for (var i = 0; i < lim; i++) {
+          var a = links[i];
+          var href = String(a.getAttribute('href') || '');
+          var hit = false;
+          for (var k = 0; k < MYTV_CAT_HREF.length; k++) {
+            if (href === MYTV_CAT_HREF[k] || href === MYTV_CAT_HREF[k] + '/' ||
+                href.indexOf(MYTV_CAT_HREF[k] + '?') === 0) { hit = true; break; }
+          }
+          if (!hit) { continue; }
+          /* 카테고리 칩 줄은 nav·header·aside 안에 있다.
+             그 밖의 상자(본문·컨테이너)는 절대 건드리지 않는다. */
+          var box = a.parentElement;
+          var d = 0;
+          while (box && d < 8) {
+            var tag = String(box.tagName || '').toLowerCase();
+            if (tag === 'nav' || tag === 'header' || tag === 'aside') { break; }
+            if (tag === 'body' || tag === 'html') { box = null; break; }
+            box = box.parentElement;
+            d = d + 1;
+          }
+          if (!box) { continue; }
+          try { if (box.closest && box.closest('#playerArea')) { continue; } } catch (e0) {}
+          try { if (box.querySelector && box.querySelector('#playerArea')) { continue; } } catch (e0b) {}
+          var dup = false;
+          for (var q = 0; q < boxes.length; q++) { if (boxes[q] === box) { dup = true; break; } }
+          if (dup) { continue; }
+          boxes.push(box);
+        }
+        for (var b = 0; b < boxes.length; b++) {
+          try {
+            if (on) { boxes[b].classList.add('mytv-cine-hide'); }
+            else { boxes[b].classList.remove('mytv-cine-hide'); }
+            n = n + 1;
+          } catch (e1) {}
+        }
+      } catch (e) {}
+      return n;
+    };
+
+    /* 회차 검색 입력칸·검색 버튼은 상세 페이지 포커스에서 뺀다 */
+    function mytvDetailInputsOff() {
+      try {
+        var sb = document.getElementById('subSearch');
+        if (sb) {
+          sb.setAttribute('tabindex', '-1');
+          sb.setAttribute('data-mytv-nofocus', '1');
+        }
+        var sbtn = document.querySelector('.btn_ep_search');
+        if (sbtn) {
+          sbtn.setAttribute('tabindex', '-1');
+          sbtn.setAttribute('data-mytv-nofocus', '1');
+        }
+      } catch (e) {}
+      return 1;
+    }
+
+    /* 회차 목록 첫 칸 (a.ep-link → #other_list → .ep-item) */
+    function mytvFirstEpLink() {
+      try {
+        var list = document.querySelectorAll('a.ep-link, #other_list li a[href], .ep-item a');
+        for (var i = 0; i < list.length; i++) {
+          var a = list[i];
+          if (!a) { continue; }
+          if (a.getAttribute('data-mytv-off') === '1') { continue; }
+          if (!mytvShown(a)) { continue; }
+          return a;
+        }
+      } catch (e) {}
+      return null;
+    }
+
+    /* v1.7.2 : #playerArea 바깥에 화면 전체를 덮는 검은 막을 깐다.
+       뒤쪽 제목 글자·좋아요·댓글·하단 요소가 한 픽셀도 비치지 않게 한다. */
+    window.__mytvWatchBg = function (on) {
+      try {
+        var bg = document.getElementById('mytv-watch-bg');
+        if (!on) {
+          if (bg && bg.parentNode) { bg.parentNode.removeChild(bg); }
+          return 'off';
+        }
+        if (!bg) {
+          bg = document.createElement('div');
+          bg.id = 'mytv-watch-bg';
+          bg.setAttribute('aria-hidden', 'true');
+          try { (document.body || document.documentElement).appendChild(bg); } catch (e0) {}
+        }
+        return 'on';
+      } catch (e) { return 'err'; }
+    };
+
+    /* 시청 화면에서 #playerArea·iframe 이 차지하는 크기(오버스캔 여백 안의 최대 = 화면 전체) */
+    window.__mytvFitPlayer = function () {
+      try {
+        var de = document.documentElement;
+        if (!de.classList.contains('mytv-watch') && !de.classList.contains('mytv-cinema')) { return 'off'; }
+        var pa = document.getElementById('playerArea');
+        if (!pa) { return 'nopa'; }
+        var vw = window.innerWidth || de.clientWidth || 1280;
+        var vh = window.innerHeight || de.clientHeight || 720;
+        try {
+          pa.style.setProperty('--mytv-pw', vw + 'px');
+          pa.style.setProperty('--mytv-ph', vh + 'px');
+        } catch (e1) {}
+        return 'fit ' + vw + 'x' + vh;
+      } catch (e) { return 'err'; }
+    };
+
+    /* 영상 화면 포커스 칸으로 이동 */
+    window.__mytvFocusStop = function () {
+      try {
+        var st = document.getElementById('mytv-player-stop');
+        if (!st) { return 'nostop'; }
+        mytvFocusItem(mytvGeom(st));
+        return 'ok';
+      } catch (e) { return 'err'; }
+    };
+
+    /* v1.7.2 : 시청 화면 — 화면 전체(100vw x 100vh)를 영상으로 채운다.
+       · #playerArea 바깥 검은 막(__mytvWatchBg)으로 뒤쪽 제목·좋아요·댓글을 완전히 가림
+       · 영상 화면 포커스 칸(OK 한 번 = 재생/일시정지, ▼ = 회차 목록) */
+    window.__mytvWatchMode = function (on) {
+      try {
+        var de = document.documentElement;
+        var old = document.getElementById('mytv-player-stop');
+        if (!on) {
+          de.classList.remove('mytv-watch');
+          de.classList.remove('mytv-cinema');
+          de.classList.remove('mytv-cine-full');
+          window.__mytvCinemaOn = 0;
+          window.__mytvWatchOn = 0;
+          window.__mytvWatchOff = 1;
+          if (old && old.parentNode) { old.parentNode.removeChild(old); }
+          if (window.__mytvWatchBg) { window.__mytvWatchBg(false); }
+          try { window.__mytvCatsHide(false); } catch (e0c) {}
+          try { window.scrollTo(0, 0); } catch (e0e) {}
+          return 'off';
+        }
+        var pa = document.getElementById('playerArea');
+        if (!pa) { return 'nopa'; }
+        de.classList.add('mytv-watch');
+        de.classList.add('mytv-cinema');
+        window.__mytvCinemaOn = 1;
+        window.__mytvWatchOn = 1;
+        window.__mytvWatchOff = 0;
+        if (window.__mytvWatchBg) { window.__mytvWatchBg(true); }
+        try { mytvDetailInputsOff(); } catch (e0) {}
+        try { window.__mytvCatsHide(true); } catch (e0b) {}
+        window.__mytvFitPlayer();
+        var st = old;
+        if (!st || !st.parentNode) {
+          st = document.createElement('div');
+          st.id = 'mytv-player-stop';
+          st.className = 'mytv-player-stop';
+          st.setAttribute('tabindex', '0');
+          st.setAttribute('role', 'button');
+          st.setAttribute('aria-label', '영상 화면: OK 재생/일시정지, 아래 방향키 회차 목록');
+          try { pa.appendChild(st); } catch (e2) {}
+        }
+        try { window.scrollTo(0, 0); } catch (e3) {}
+        /* v1.7.2 : 포커스를 영상 칸에 확실히 둔다(focusin → 앱에 onPlayerStop 보고) */
+        try { st.focus(); } catch (e5) {}
+        try { mytvFocusItem(mytvGeom(st)); } catch (e4) {}
+        try { st.focus(); } catch (e6) {}
+        /* v1.7.4 : 리모컨 OK(스페이스)·◀▶ 키가 플레이어 iframe 안으로 들어가야 한다.
+           (실측: iframe 에 포커스가 있을 때 Space = 1회 정지/재생, ←→ = 10초 감기) */
+        try { window.__mytvFocusPlayer(); } catch (e7) {}
+        try { window.__mytvPopupsOff(); } catch (e8) {}
+        /* v1.7.5 : 들어오자마자·조금 뒤 한 번 더 화면을 0 으로 고정한다 */
+        try { window.__mytvPin(); } catch (e9) {}
+        setTimeout(function () { try { window.__mytvPin(); } catch (e10) {} }, 120);
+        setTimeout(function () { try { window.__mytvPin(); } catch (e11) {} }, 420);
+        return 'watch';
+      } catch (e) { return 'err'; }
+    };
+
+    /* v1.7.2 : 시청 화면에서 ▼ — 원래 페이지로 돌아가 회차 목록 첫 칸에 포커스 */
+    window.__mytvWatchList = function () {
+      try {
+        window.__mytvWatchMode(false);
+        return window.__mytvFocusBack();
+      } catch (e) { return 'err'; }
+    };
+
+    /* ================= v1.7.4 : 시청 화면에서 나올 때 즉시 파란 테두리 =================
+       BACK/▼ 로 목록에 돌아오면 예전에는 포커스가 지워진 채로 남아 테두리가 한참 뒤에야
+       나타났다. 나오는 즉시 '회차 목록 첫 칸 → 화면 첫 카드' 순서로 포커스를 잡는다. */
+    window.__mytvFocusBack = function () {
+      try {
+        try { window.__mytvWatchMode(false); } catch (e0) {}
+        var f = mytvFirstEpLink();
+        if (!f) {
+          try {
+            var it = mytvFirstBodyItem(window.innerHeight || 720);
+            if (it) { f = it.el; }
+          } catch (e1) {}
+        }
+        if (!f) { f = mytvFirst(); }
+        if (!f) { return 'none'; }
+        try { mytvFocusItem(mytvGeom(f)); } catch (e2) {}
+        try { f.focus({ preventScroll: true }); } catch (e3) { try { f.focus(); } catch (e4) {} }
+        try { mytvMarkFocus(f, mytvCardOf(f)); } catch (e5) {}
+        window.__mytvCur = f;
+        return 'ok';
+      } catch (e) { return 'err'; }
+    };
+
+    /* v1.7.5 : 화면 맨 위 머리글(#header_wrap)·서랍 메뉴(#gnb/#snb/#side_wrap)·하단 바가 아니라
+       본문의 첫 카드를 고른다. 본문 후보가 하나도 없을 때만 화면에 보이는 첫 항목으로 물러난다. */
+    function mytvFirstBodyItem(vh) {
+      try {
+        var all = mytvCandidates(true);
+        var best = null;
+        for (var i = 0; i < all.length; i++) {
+          var it = all[i];
+          if (!it || !it.el) { continue; }
+          if (it.fixed) { continue; }
+          try { if (mytvInChrome(it.el)) { continue; } } catch (eC) {}
+          if (it.vb < 4) { continue; }
+          if (it.vt > vh - 4) { continue; }
+          if (!best || it.vt < best.vt) { best = it; }
+        }
+        if (best) { return best; }
+      } catch (e) {}
+      try { return mytvFirstItem(mytvCandidates(true), vh); } catch (e2) { return null; }
+    }
+
+    /* 페이지가 처음 열렸을 때도 첫 카드에 테두리를 바로 준다.
+       (이미 다른 항목에 포커스가 있으면 절대 뺏지 않는다) */
+    window.__mytvFocusFirst = function () {
+      try {
+        var a = document.activeElement;
+        if (a && a !== document.body && a !== document.documentElement) { return 'has'; }
+        var f = mytvFirstEpLink();
+        if (!f) {
+          var it = mytvFirstBodyItem(window.innerHeight || 720);
+          if (it) { f = it.el; }
+        }
+        if (!f) { return 'none'; }
+        try { mytvFocusItem(mytvGeom(f)); } catch (e0) {}
+        try { mytvMarkFocus(f, mytvCardOf(f)); } catch (e1) {}
+        return 'ok';
+      } catch (e) { return 'err'; }
+    };
+
+    /* v1.7.5 : 설치가 끝난 문서에 다시 들어왔을 때 빠진 것만 보강한다.
+       (스타일 태그 · 공지 팝업 · 테두리/포커스) */
+    window.__mytvReinforce = function () {
+      try {
+        if (!document.getElementById('mytv-style') && window.__mytvCss) {
+          var st2 = document.createElement('style');
+          st2.id = 'mytv-style';
+          st2.appendChild(document.createTextNode(window.__mytvCss));
+          (document.head || document.documentElement).appendChild(st2);
+        }
+      } catch (e0) {}
+      try { window.__mytvPopupsOff(); } catch (e1) {}
+      try { window.__mytvFocusFirst(); } catch (e2) {}
+      try {
+        if (!document.querySelector('.mytv-hot, .mytv-ring')) {
+          var h = mytvFirstBodyItem(window.innerHeight || 720);
+          if (h) { mytvMarkFocus(h.el, mytvCardOf(h.el)); }
+        }
+      } catch (e3) {}
+      return 'ok';
+    };
+
+    /* v1.7.5 : 뒤로가기로 되살아난 문서(BFCache)는 onPageFinished 가 다시 오지 않는다.
+       pageshow 에서 팝업·테두리를 즉시 다시 잡는다. */
+    try {
+      window.addEventListener('pageshow', function () {
+        try { window.__mytvReinforce(); } catch (e0) {}
+        setTimeout(function () { try { window.__mytvFocusFirst(); } catch (e1) {} }, 80);
+        setTimeout(function () { try { window.__mytvFocusFirst(); } catch (e2) {} }, 320);
+      });
+    } catch (ePs) {}
+
+    /* v1.7.5 : 시청 화면에서 화면이 밀리지 않게 항상 맨 위(0,0)로 되돌린다 */
+    window.__mytvPin = function () {
+      try {
+        if (!document.documentElement.classList.contains('mytv-watch')) { return 'off'; }
+        if (window.scrollTo) { window.scrollTo(0, 0); }
+        var se = document.scrollingElement || document.documentElement;
+        if (se) { se.scrollTop = 0; se.scrollLeft = 0; }
+        if (document.body) { document.body.scrollTop = 0; document.body.scrollLeft = 0; }
+        return 'ok';
+      } catch (e) { return 'err'; }
+    };
+
+    /* v1.7.5 : 주소 형태와 무관하게 '플레이어가 붙은 페이지'인지 본다.
+       티비몬·티비위키의 작품·회차 페이지에는 #playerArea + #view_iframe 이 있고,
+       목록·홈에는 없다(실측: tvmon /drama·/movie·/ 홈 0개, /drama/12484·/ent/3756 1개,
+       tvwiki /ent/1067·/animation/45·/old_drama/1515·/sisa/514 1개). */
+    window.__mytvPlayerPage = function () {
+      try {
+        var pa = document.getElementById('playerArea');
+        if (!pa) { return '0'; }
+        var fr = document.getElementById('view_iframe') || pa.querySelector('iframe, video, embed, object');
+        if (!fr) { return '0'; }
+        var r = pa.getBoundingClientRect ? pa.getBoundingClientRect() : null;
+        if (!r || r.width < 160 || r.height < 90) { return '0'; }
+        return '1';
+      } catch (e) { return '0'; }
+    };
+
+    /* v1.7.5 : 앱이 '지금 화면에 테두리가 잡혀 있나'를 물어볼 때 쓴다 */
+    window.__mytvNavRing = function () {
+      try { return document.querySelectorAll('.mytv-hot, .mytv-ring, .mytv-one').length; } catch (e) { return -1; }
+    };
+
+    /* ================= v1.7.4 : 리모컨 키를 플레이어로 넘기기 =================
+       실측(tvmon1.com 실제 회차 페이지, Chromium):
+         · 플레이어 iframe(#view_iframe)에 포커스가 있을 때
+             Space 1회 = 정지/재생 1회 토글 (광고 겹침과 무관)
+             ← 1회 = 10초 뒤로, → 1회 = 10초 앞으로 (정확히 10초)
+         · iframe 에 포커스가 없으면 ←→ 는 아무 일도 하지 않는다.
+       그래서 '먼저 iframe 에 포커스를 준다'가 핵심이다. */
+    window.__mytvFocusPlayer = function () {
+      try {
+        var fr = document.getElementById('view_iframe');
+        if (!fr) {
+          var pa = document.getElementById('playerArea');
+          fr = pa ? pa.querySelector('iframe') : null;
+        }
+        if (!fr) { fr = document.querySelector('#playerArea iframe, .embed-container iframe, iframe#view_iframe'); }
+        if (!fr) { return 'none'; }
+        try { fr.setAttribute('tabindex', '0'); } catch (e0) {}
+        try { fr.focus({ preventScroll: true }); } catch (e1) { try { fr.focus(); } catch (e2) {} }
+        /* v1.7.5 : 포커스를 주면서 화면이 밑으로 내려가지 않게 즉시 0 으로 되돌린다 */
+        try { window.__mytvPin(); } catch (e3) {}
+        return 'ok';
+      } catch (e) { return 'err'; }
+    };
+
+    /* 같은 문서에 있는 영상이면 직접 감고, iframe 플레이어면 'key'(앱이 ←→ 키를 보낸다) */
+    window.__mytvSeek = function (d) {
+      try {
+        var v = document.querySelector('video');
+        if (v && isFinite(v.duration) && v.duration > 0) {
+          var t = (v.currentTime || 0) + (d || 0);
+          if (t < 0) { t = 0; }
+          if (t > v.duration - 0.6) { t = Math.max(0, v.duration - 0.6); }
+          try { v.currentTime = t; } catch (e0) {}
+          return 'ok';
+        }
+        if (window.__mytvFocusPlayer && window.__mytvFocusPlayer() === 'ok') {
+          /* v1.7.5 : ◀▶ 는 플레이어 iframe 이 키를 받아야 해서 포커스를 옮긴다.
+             그때 화면이 밑으로 밀리지 않도록 되돌린다. */
+          try { window.__mytvPin(); } catch (eP) {}
+          return 'key';
+        }
+        return 'none';
+      } catch (e) { return 'err'; }
+    };
+
+    /* ================= v1.7.4 : 공지 팝업 자동 정리 =================
+       티비위키 '긴급 안내'(#dnsguide-modal-overlay + '오늘 하루 안 보기')와
+       그누보드 공지 팝업(#hd_pop / .hd_pops, '다시 보지 않기' = .hd_pops_reject)을
+       사용자가 보지도, 닫지도 않게 한다. 팝업 안에 포커스가 갇히지 않도록 tabindex 도 뺀다. */
+    window.__mytvPopupsOff = function () {
+      var n = 0;
+      try {
+        /* ① 티비위키 안내 팝업 : '오늘 하루 안 보기'를 켜고 닫는다 */
+        try {
+          var cb = document.getElementById('dnsguide-dismiss');
+          if (cb) { try { cb.checked = true; } catch (e0) {} }
+          try { localStorage.setItem('tvwiki_dns_modal_dismiss', String(new Date().getTime() + 86400000)); } catch (e1) {}
+          var dc = document.querySelector('#dnsguide-modal-overlay .dns-close');
+          if (dc && window.closeDnsModal) { try { window.closeDnsModal(); n = n + 1; } catch (e2) {} }
+        } catch (e3) {}
+        /* ② 그누보드 공지 팝업 : '다시 보지 않기'를 실제로 눌러 쿠키를 남긴다 */
+        try {
+          var rej = document.querySelectorAll('.hd_pops_reject, .hd_pops_reject input, #hd_pops_reject');
+          for (var i = 0; i < rej.length; i++) { try { rej[i].click(); n = n + 1; } catch (e4) {} }
+        } catch (e5) {}
+        try {
+          var cls = document.querySelectorAll('.hd_pops_close, #hd_pop .close, .hd_pops .close');
+          for (var j = 0; j < cls.length; j++) { try { cls[j].click(); n = n + 1; } catch (e6) {} }
+        } catch (e7) {}
+        /* ③ 그래도 남아 있으면 아예 숨긴다 + 안쪽 링크·버튼은 포커스 대상에서 뺀다 */
+        var sel = '#dnsguide-modal-overlay, #hd_pop, .hd_pops, .hd_pops_wrap, .popup_layer, #notice_pop, .notice_pop, #pop_layer';
+        var pops = document.querySelectorAll(sel);
+        for (var k = 0; k < pops.length; k++) {
+          var p = pops[k];
+          try {
+            p.classList.remove('dns-show');
+            p.setAttribute('aria-hidden', 'true');
+            p.setAttribute('tabindex', '-1');
+            p.style.setProperty('display', 'none', 'important');
+            var inner = p.querySelectorAll('a[href], button, input, select, textarea, [tabindex]');
+            for (var m = 0; m < inner.length; m++) { try { inner[m].setAttribute('tabindex', '-1'); } catch (e8) {} }
+            n = n + 1;
+          } catch (e9) {}
+        }
+      } catch (e) {}
+      return n;
+    };
+
+    /* v1.7.2 : 이어보기·즐겨찾기 카드에 넣을 작품 포스터 주소를 찾는다.
+       우선순위 : og:image → 작품 포스터(#bo_v_poster 등) → 회차 썸네일 중 가장 큰 것.
+       광고 배너(data/banner · no3.png …)와 목록·홈 페이지의 배너는 쓰지 않는다. */
+    window.__mytvPoster = function () {
+      try {
+        var abs = function (u) {
+          try { return new URL(u, location.href).href; } catch (e) { return String(u); }
+        };
+        var bad = function (u) {
+          if (!u) { return true; }
+          u = String(u);
+          if (u.indexOf('http') !== 0) { return true; }
+          if (/\/data\/banner\/|\/AD\/|no3\.png|no3_|no_profile|linemenu|logo|spacer|blank\./i.test(u)) { return true; }
+          return false;
+        };
+        var srcOf = function (el) {
+          if (!el) { return ''; }
+          var u = el.currentSrc || el.getAttribute('data-src') || el.getAttribute('data-original') ||
+                  el.getAttribute('data-lazy') || el.src || '';
+          if (!u) { return ''; }
+          try { if (el.naturalWidth && el.naturalWidth > 0 && el.naturalWidth < 80) { return ''; } } catch (e0) {}
+          if (bad(u)) { return ''; }
+          return abs(u);
+        };
+        var og = document.querySelector('meta[property="og:image"], meta[name="og:image"], meta[property="twitter:image"]');
+        if (og) {
+          var c = og.getAttribute('content') || '';
+          if (c && !bad(c)) { return abs(c); }
+        }
+        var poster = document.querySelector('#bo_v_poster img, #bo_v_img img, .poster img, .poster_wrap img, .movie_poster img');
+        var p1 = srcOf(poster);
+        if (p1) { return p1; }
+        if (!mytvIsDetail()) { return ''; }
+        var best = '';
+        var bestA = 0;
+        var imgs = document.querySelectorAll('#other_list img, .ep-list img, #ep_list img, #content_wrap img');
+        var lim = imgs.length > 40 ? 40 : imgs.length;
+        for (var i = 0; i < lim; i++) {
+          var u3 = srcOf(imgs[i]);
+          if (!u3) { continue; }
+          var r = imgs[i].getBoundingClientRect ? imgs[i].getBoundingClientRect() : null;
+          var a = r ? (r.width * r.height) : 0;
+          if (a > bestA) { bestA = a; best = u3; }
+        }
+        return best;
+      } catch (e) { return ''; }
+    };
+
+    window.__mytvDetailFocus = function () {
+      var n = 0;
+      try {
+        if (!mytvIsDetail()) { return 0; }
+        /* v1.7.1 : 상세 페이지에 들어왔다고 자동으로 시네마(화면 잠금)를 걸지 않는다.
+           사용자가 회차를 골라 재생을 시작했을 때(__mytvWatchMode)만 들어간다. */
+        try {
+          if (window.__mytvCinemaOn && window.__mytvFitPlayer) { window.__mytvFitPlayer(); }
+        } catch (e9) {}
+        var keepSel = '#playerArea, #playNextBtn, #epListNext, a.ep-link, .ep-item a, .ep-list a, #other_list li a, #other_list a, .next-ep-btn, .next-episode-close, .btn_next, .bo_v_nb_mobile a, #hd_sch, .btn_search, #btn_side, #btn_side_mobile, #gnb a, #snb a, #float a';
+        /* v1.6 : 회차 검색 입력칸은 리모컨 포커스에서 뺀다(입력칸에 갈히는 문제) */
+        try { mytvDetailInputsOff(); } catch (e7) {}
+        var links = document.querySelectorAll('a[href], button, [role="button"], input, select, textarea, [tabindex]');
+        var lim = links.length > 1200 ? 1200 : links.length;
+        for (var i = 0; i < lim; i++) {
+          var el = links[i];
+          if (!el || el.getAttribute('data-mytv-off') === '1') { continue; }
+          if (el.getAttribute('data-mytv-dup') === '1' || el.getAttribute('data-mytv-dot') === '1') { continue; }
+          if (mytvProtected(el)) { continue; }
+          var keep = false;
+          try { keep = !!(el.closest && el.closest(keepSel)); } catch (e0) {}
+          if (keep) { continue; }
+          if (el.querySelector && el.querySelector('img') && el.closest && el.closest('#other_list, .ep-list, #ep_list')) { continue; }
+          el.setAttribute('data-mytv-off', '1');
+          el.setAttribute('tabindex', '-1');
+          n = n + 1;
+        }
+        /* v1.7.1 : 처음 들어온 화면이면 회차 목록 첫 칸에 포커스를 준다(회차를 먼저 고르게) */
+        try {
+          var ae0 = document.activeElement;
+          if (!ae0 || ae0 === document.body || ae0 === document.documentElement) {
+            if (window.__mytvWatchOn && window.__mytvFocusStop) {
+              window.__mytvFocusStop();
+            } else {
+              var f0 = mytvFirstEpLink();
+              if (f0) { mytvFocusItem(mytvGeom(f0)); }
+            }
+          }
+        } catch (e11) {}
+      } catch (e) {}
+      return n;
+    };
+
+    /* ================= v1.5 : 실시간 TV 페이지 정리 ================= */
+
+    /* v1.6 : 플레이어만 화면에 꽉 채운다.
+       영상(video/iframe)을 찾아 그 플레이어 박스에 mytv-fs 를 붙이고,
+       body까지 올라가며 지나온 부모에 mytv-fs-host 를 붙인다.
+       CSS 는 그 줄기 밖의 사이트 머리글·메뉴·설명을 모두 감춘다. */
+    function mytvPlayerBox() {
+      try {
+        var d = document;
+        var media = d.querySelector('video') || d.querySelector('iframe[src]') ||
+                    d.querySelector('embed[src]') || d.querySelector('object[data]');
+        var box = media;
+        var k = 0;
+        while (box && k < 6) {
+          var par = box.parentElement;
+          if (!par || par === d.body || par === d.documentElement) { break; }
+          var idc = String(par.id || '');
+          var clc = String((par.className && par.className.baseVal) || par.className || '');
+          if (/player|video|stage|embed|screen|watch|stream/i.test(idc + ' ' + clc)) {
+            box = par;
+            k = k + 1;
+          } else { break; }
+        }
+        if (box) { return box; }
+        var sels = ['.player', '#playerArea', '#player', '#videoWrap', '.video-player',
+                    '.embed-container', '.player-wrap', '#stream', '.stream-box'];
+        for (var i = 0; i < sels.length; i++) {
+          var one = d.querySelector(sels[i]);
+          if (one && one.querySelector && one.querySelector('video, iframe, embed, object')) { return one; }
+        }
+        for (var j = 0; j < sels.length; j++) {
+          var two = d.querySelector(sels[j]);
+          if (two) { return two; }
+        }
+      } catch (e) {}
+      return null;
+    }
+
+    window.__mytvPlayerBox = mytvPlayerBox;
+
+    window.__mytvLiveApply = function () {
+      try {
+        var d = document;
+        var de = d.documentElement;
+        de.classList.add('mytv-live');
+        var old = d.querySelectorAll('.mytv-fs, .mytv-fs-host');
+        for (var i = 0; i < old.length; i++) {
+          old[i].classList.remove('mytv-fs');
+          old[i].classList.remove('mytv-fs-host');
+        }
+        de.classList.remove('mytv-fs-on');
+        var box = mytvPlayerBox();
+        if (!box) { return 'noplayer'; }
+        box.classList.add('mytv-fs');
+        var n = box;
+        var depth = 0;
+        while (n && n.parentElement && n !== d.body && depth < 12) {
+          n = n.parentElement;
+          if (!n || n === de) { break; }
+          n.classList.add('mytv-fs-host');
+          depth = depth + 1;
+        }
+        de.classList.add('mytv-fs-on');
+        try { window.scrollTo(0, 0); } catch (e2) {}
+        return 'ok';
+      } catch (e) { return 'err'; }
+    };
+
+    /* 사이트 자바스크립트가 플레이어를 새로 그려도 다시 붙도록 지켜본다. */
+    window.__mytvLiveKeep = function (on) {
+      try {
+        var de = document.documentElement;
+        if (on) {
+          window.__mytvLiveOn = true;
+          if (!window.__mytvLiveTimer) {
+            var n = 0;
+            window.__mytvLiveTimer = setInterval(function () {
+              n = n + 1;
+              if (!window.__mytvLiveOn || n > 80) {
+                clearInterval(window.__mytvLiveTimer);
+                window.__mytvLiveTimer = null;
+                return;
+              }
+              try { window.__mytvLiveApply(); } catch (e1) {}
+            }, 700);
+          }
+          if (!window.__mytvLiveObs && window.MutationObserver) {
+            var t = 0;
+            window.__mytvLiveObs = new MutationObserver(function () {
+              if (!window.__mytvLiveOn || t) { return; }
+              t = setTimeout(function () {
+                t = 0;
+                try { if (window.__mytvLiveOn) { window.__mytvLiveApply(); } } catch (e3) {}
+              }, 150);
+            });
+            try {
+              window.__mytvLiveObs.observe(de, { childList: true, subtree: true });
+            } catch (e4) {}
+          }
+          return window.__mytvLiveApply();
+        }
+        window.__mytvLiveOn = false;
+        de.classList.remove('mytv-fs-on');
+        if (window.__mytvLiveTimer) { clearInterval(window.__mytvLiveTimer); window.__mytvLiveTimer = null; }
+        if (window.__mytvLiveObs) {
+          try { window.__mytvLiveObs.disconnect(); } catch (e5) {}
+          window.__mytvLiveObs = null;
+        }
+        de.classList.remove('mytv-live');
+        var olds = document.querySelectorAll('.mytv-fs, .mytv-fs-host');
+        for (var k = 0; k < olds.length; k++) {
+          olds[k].classList.remove('mytv-fs');
+          olds[k].classList.remove('mytv-fs-host');
+        }
+        return 'off';
+      } catch (e) { return 'err'; }
+    };
+
+    window.__mytvLiveCss = function (on) {
+      try { return window.__mytvLiveKeep(!!on); } catch (e) { return 'err'; }
+    };
+
+    window.__mytvLiveState = function () {
+      try {
+        var ifr = document.querySelectorAll('iframe').length;
+        var v = document.querySelector('video');
+        if (!v) { return JSON.stringify({ has: false, playing: false, t: 0, ifr: ifr }); }
+        return JSON.stringify({
+          has: true, playing: !v.paused && v.readyState >= 2,
+          t: Math.round((v.currentTime || 0) * 10) / 10,
+          muted: !!v.muted, err: v.error ? v.error.code : 0, ifr: ifr
+        });
+      } catch (e) { return ''; }
+    };
+
+    window.__mytvLiveNudge = function () {
+      try {
+        var v = document.querySelector('video');
+        if (!v) { return 'novideo'; }
+        if (!v.paused && v.readyState >= 2) { return 'playing'; }
+        try { v.muted = true; } catch (e1) {}
+        var p = v.play();
+        if (p && p.then) {
+          p.then(function () {
+            try { setTimeout(function () { v.muted = false; }, 600); } catch (e2) {}
+          }).catch(function () {
+            try {
+              var ov = document.getElementById('playOv');
+              if (ov) { ov.click(); }
+            } catch (e3) {}
+          });
+          return 'try';
+        }
+        return 'noapi';
+      } catch (e) { return 'err'; }
+    };
+
+    try { window.__mytvApply = function () { try { mytvMarkFocus(document.activeElement, mytvCardOf(document.activeElement)); } catch (e) {} }; } catch (e) {}
+
+    window.__mytvIniting = 0;
+    return 'ok';
+  } catch (e) {
+    window.__mytvIniting = 0;
+    return 'err';
+  }
+})();
+
+</script>
+
+<script>
+(function () {
+  var fr = document.getElementById('view_iframe');
+  window.__R.baseScrollH = document.documentElement.scrollHeight;
+  window.__R.viewport = [window.innerWidth, window.innerHeight];
+
+  /* A) 수정 전 방식 재현 : 시청 화면 아님 + 그냥 fr.focus() */
+  window.scrollTo(0, 0);
+  rec('A0 시작(시청 화면 아님)');
+  try { fr.focus(); } catch (e) {}
+  rec('A1 그냥 fr.focus() (수정 전)');
+
+  /* B) 수정 후 : 시청 화면 진입 → 플레이어 포커스 → 10초 감기 */
+  window.scrollTo(0, 0);
+  try { window.__mytvWatchMode(true); } catch (e) {}
+  rec('B0 __mytvWatchMode(true)');
+  try { window.__mytvFocusPlayer(); } catch (e) {}
+  rec('B1 __mytvFocusPlayer()');
+  var r1 = window.__mytvSeek ? window.__mytvSeek(10) : 'no';
+  rec('B2 __mytvSeek(+10) [' + r1 + ']');
+  var r2 = window.__mytvSeek ? window.__mytvSeek(-10) : 'no';
+  rec('B3 __mytvSeek(-10) [' + r2 + ']');
+  try { window.__mytvFocusPlayer(); } catch (e) {}
+  rec('B4 __mytvFocusPlayer() 다시');
+  /* 스크롤을 일부러 밀어 본다 → 고정이면 다시 0 으로 돌아와야 한다 */
+  try { window.scrollTo(0, 600); } catch (e) {}
+  rec('B5 일부러 scrollTo(0,600)');
+  try { window.__mytvPin(); } catch (e) {}
+  rec('B6 __mytvPin()');
+  window.__R.hasPlayerPage = window.__mytvPlayerPage ? window.__mytvPlayerPage() : 'no';
+  show();
+})();
+</script>
+</body></html>
