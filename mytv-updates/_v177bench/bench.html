@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>My TV v1.7.7 성능 측정</title>
+<style>
+ body{margin:0;background:#111;color:#ddd;font:14px/1.5 sans-serif}
+ #out{white-space:pre;padding:16px;font:13px/1.6 monospace}
+ .row{display:flex;flex-wrap:wrap;gap:12px;padding:10px}
+ .item{width:180px}
+ .item img{width:180px;height:100px;background:#333;display:block}
+ .banner{width:310px;height:80px;background:#222}
+ header,nav{position:sticky;top:0;background:#222;height:120px}
+</style></head><body>
+<header>헤더</header>
+<nav>메뉴 <a href="/ent/1090/1">전체보기</a> <a href="/ent/1090/2">더보기</a></nav>
+<div id="ads1" class="row"><a href="https://ad.example/1"><span class="banner"></span></a><a href="https://ad.example/2"><span class="banner"></span></a><a href="https://ad.example/3"><span class="banner"></span></a></div>
+<div id="playerArea" style="width:1250px;height:300px;background:#000;margin:20px auto"></div>
+<h2>전체회차</h2>
+<div id="other_list"></div>
+<div id="out">측정 중…</div>
+<footer>푸터 <a href="/">홈</a></footer>
+<script>
+/* 회차 800개 (링크 2개씩 = 1600) — 실제 tvmon1 '나 혼자 산다' 목록과 비슷한 규모 */
+var list = document.getElementById('other_list');
+var html = '';
+for (var i = 0; i < 800; i++) {
+  html += '<div class="item"><a href="/ent/1090/' + (400000000 + i) + '"><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" width="180" height="100"></a><a href="/ent/1090/' + (400000000 + i) + '">나 혼자 산다 ' + (800 - i) + '화</a></div>';
+}
+list.innerHTML = html;
+</script>
+<script src="./v177.js"></script>
+<script>
+function now() { return performance.now(); }
+function oldScan() {
+  var els = document.querySelectorAll('a[href], button, [role="button"], input, select, textarea, [tabindex]');
+  var lim = Math.min(els.length, 2600);
+  var out = 0;
+  for (var i = 0; i < lim; i++) {
+    var c = els[i];
+    var r = c.getBoundingClientRect();
+    if (r.width < 8 || r.height < 8) continue;
+    var cs = getComputedStyle(c);
+    if (cs.display === 'none' || cs.visibility === 'hidden') continue;
+    var p = c, d = 0;
+    while (p && p.nodeType === 1 && d < 12) {
+      var ps = getComputedStyle(p);
+      if (ps.position === 'fixed' || ps.position === 'sticky') break;
+      p = p.parentElement; d++;
+    }
+    out++;
+  }
+  return out;
+}
+function run() {
+  var res = {};
+  res.focusable = document.querySelectorAll('a[href], button, [role="button"], input, select, textarea, [tabindex]').length;
+  if (!window.__mytvKey) { res.err = 'JS_MAIN 미설치'; return res; }
+  var old = [], i, t;
+  for (i = 0; i < 3; i++) { t = now(); oldScan(); old.push(+(now() - t).toFixed(1)); }
+  res.oldScanMs = old;
+  var cold = [];
+  for (i = 0; i < 3; i++) { window.__mytvCandCache = null; t = now(); window.__mytvKey(1); cold.push(+(now() - t).toFixed(1)); }
+  res.keyColdMs = cold;
+  var warm = [];
+  for (i = 0; i < 8; i++) { t = now(); window.__mytvKey(1); warm.push(+(now() - t).toFixed(1)); }
+  res.keyWarmMs = warm;
+  res.warmMax = Math.max.apply(null, warm);
+  res.warmAvg = +(warm.reduce(function (a, b) { return a + b; }, 0) / warm.length).toFixed(1);
+  res.candCount = window.__mytvCandCache ? window.__mytvCandCache.list.length : -1;
+  t = now(); window.__mytvDetailFocus(); res.detailFocusMs = +(now() - t).toFixed(1);
+  t = now(); window.__mytvTick(); res.tickMs = +(now() - t).toFixed(1);
+  return res;
+}
+window.addEventListener('load', function () {
+  setTimeout(function () {
+    try { document.getElementById('out').textContent = JSON.stringify(run(), null, 1); }
+    catch (e) { document.getElementById('out').textContent = 'ERR ' + e.message; }
+  }, 1200);
+});
+</script>
+</body></html>
