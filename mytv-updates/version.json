@@ -1,8 +1,8 @@
 {
-  "versionCode": 11,
-  "versionName": "1.7.2",
-  "apkUrl": "https://raw.githubusercontent.com/bgl730910-dotcom/bgl730910-dotcom.github.io/main/mytv-updates/MyTV_v1.7.2_APK.apk",
-  "notes": "v1.7.2 - 시청 화면이 영상으로 화면을 꽉 채움: #playerArea 바깥 검은 막(fixed 100vw x 100vh)으로 뒤쪽 제목·좋아요·댓글 완전히 가림, OK(정지) 버튼 한 번이면 바로 정지/재생(앱 쪽 상태로 확정 처리·중복 토글 방지·탭 좌표 화면 한가운데), 회차 페이지 진입 시 자동 꽉 찬 시청 화면(BACK 원래 페이지·▼ 회차 목록), 이어보기·즐겨찾기 카드에 작품 포스터 사진 + 아래 제목(ThumbLoader 캐시, 기존 저장 데이터 호환), 앱 버전 표시 1.7.2",
-  "sha256": "57a0ff53fc126dd4350118ae4b42aab3b66b4a6a6e37cb3daa514b4e480b7ea9",
+  "versionCode": 12,
+  "versionName": "1.7.3",
+  "apkUrl": "https://raw.githubusercontent.com/bgl730910-dotcom/bgl730910-dotcom.github.io/main/mytv-updates/MyTV_v1.7.3_APK.apk",
+  "notes": "v1.7.3 - 안드로이드 7(API 24~25) 구형 셋톱박스 호환 보강: 앱 안에 Let's Encrypt ISRG Root X1/X2 인증서를 넣어 network_security_config 로 신뢰(TVMON·TVWIKI 의 CSS·JS·포스터가 오는 api3.apisvc11.com 때문에 디자인이 깨지던 문제 해결), 안드로이드 7.1 이하에서만 콘텐츠 호스트의 SSL_UNTRUSTED/만료 오류를 안전하게 통과, ExoPlayer 도 같은 루트를 신뢰하고 재생 실패 시 앱이 종료되지 않음, WebView 렌더러가 죽어도 앱은 살고 보던 화면 자동 복구, 주입 스크립트 전부 ES2015 문법 점검(0건)·구형이 모르는 CSS(inset 축약·flex gap·:focus-visible) 정리. v1.7.2 기능 그대로. Qbox 안드로이드 14 동작 변화 없음.",
+  "sha256": "46d25fe393bbb16a35c065629a4d950dea62b3e8f98f7c17f24f07ce9e5f3aa6",
   "mirrorUrl": "https://bgl730910-dotcom.github.io/mytv-updates/version.json"
 }
