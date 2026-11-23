@@ -1,8 +1,8 @@
 {
-  "versionCode": 13,
-  "versionName": "1.7.4",
-  "apkUrl": "https://raw.githubusercontent.com/bgl730910-dotcom/bgl730910-dotcom.github.io/main/mytv-updates/MyTV_v1.7.4_APK.apk",
-  "notes": "v1.7.4 - 실사용 제보 3건 + 추가 요청 2건 수정: ① 영상 볼 때 사방 검은 여백·파란 테두리 제거(시청 중 오버스캔 여백 0, 화면 끝까지 꽉 참) ② 영화 상세(/movie/36794)처럼 2칸 주소의 페이지도 자동으로 꽉 찬 시청 화면 ③ OK(가운데) 한 번 = 정지/재생 (실제 플레이어 실측: iframe 포커스 + Space 키 1회가 정확히 1회 토글, 광고 그림이 클릭을 먹는 문제 우회) ④ ◀ / ▶ = 10초 뒤로 / 10초 앞으로 ⑤ BACK 으로 나오면 파란 선택 테두리가 즉시(0.1~0.3초) 회차 목록 첫 칸에 ⑥ 티비위키·티비몬 공지 팝업(긴급 안내·그누보드 공지) 자동 숨김 + '오늘 하루 안 보기' 대신 저장, 팝업에 포커스 갇힘 없음. 티비몬 드라마·예능·영화, 티비위키 모두 같은 플레이어 구조로 동작. v1.7.3 의 안드로이드 7 인증서 보강 그대로.",
-  "sha256": "35c6c53756c3576875860db286ddbdba2e05053216e424a6a7e8ae8002bdc6be",
+  "versionCode": 14,
+  "versionName": "1.7.5",
+  "apkUrl": "https://raw.githubusercontent.com/bgl730910-dotcom/bgl730910-dotcom.github.io/main/mytv-updates/MyTV_v1.7.5_APK.apk",
+  "notes": "v1.7.5 - ① 페이지에 들어가자마자 파란 선택 테두리·방향키가 바로(0.5~1초) 동작 (티비몬·티비위키의 느린 광고·이미지 때문에 로딩 끝 신호가 1~2분 늦게 와도, 진행률 35%·문서 표시 시점·0.6/1.3/2.2초에 미리 넣고 여러 번 넣어도 한 번만 설치) ② 뒤로가기로 돌아온 화면도 즉시 테두리 복구 ③ 첫 테두리는 왼쪽 메뉴가 아니라 본문 첫 카드 ④ 영상 보는 중 OK·◀·▶ 를 눌러도 화면이 밑으로 내려가지 않음(시청 화면 문서 고정 + 포커스 preventScroll + 앱에서 scrollTo(0,0), 실브라우저 실측 scrollY=0·영상 top=0) ⑤ 티비위키 영화·작품 주소(/kor_movie·/ani_movie·/animation·/ent·/old_drama·/sisa 등)도 자동으로 꽉 찬 시청 화면, 주소와 무관하게 #playerArea+#view_iframe 이 있으면 시청 화면 ⑥ v1.7.4 기능 그대로(여백 0·영화 꽉 찬 화면·OK 1회 정지·◀▶ 10초 감기·BACK 즉시 포커스·공지 팝업 정리·안드로이드 7 인증서 보강).",
+  "sha256": "e9227ecb29fbc40838d8b787550d2d04adc46617c5c42bd50a35c4bac15fe6f3",
   "mirrorUrl": "https://bgl730910-dotcom.github.io/mytv-updates/version.json"
 }
