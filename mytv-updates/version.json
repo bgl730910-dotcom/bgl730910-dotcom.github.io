@@ -3,6 +3,6 @@
   "versionName": "1.8.1",
   "apkUrl": "https://raw.githubusercontent.com/bgl730910-dotcom/bgl730910-dotcom.github.io/main/mytv-updates/MyTV_v1.8.1_APK.apk",
   "notes": "v1.8.1 - 이어보기 카드의 포스터 사진이 나오지 않던 문제를 고쳤습니다. ① 목록에서 작품을 눌러 들어갈 때 그 카드에 있던 포스터를 함께 기억해, 상세 화면에 포스터가 없는 사이트도 이어보기 카드에 사진이 뜹니다. ② 상세 화면에서는 포스터 상자·영상 미리보기 이미지·늦게 불러오는 이미지까지 찾아내고, 광고 배너와 사이트 공통 공유 이미지는 포스터로 쓰지 않습니다. ③ 페이지가 늦게 그려지는 사이트를 위해 확인을 두 번(0.5초·2초) 합니다. ④ 포스터를 받아오지 못한 카드는 그 주소를 기억해 두었다가 다음에 새 포스터로 바꿉니다. ⑤ 이미지 받기를 보강했습니다(AVIF 제거·사이트 쿠키 전송·구형 기기 인증서). ⑥ 이미 저장된 이어보기 항목도 다시 열면 포스터가 채워집니다.",
-  "sha256": "b8df6de1e54495f0b445db8473bac3cd2ef2b11e888e635a2c0a7b52d9bf7b96",
+  "sha256": "bf913d37a25b470c08d259e8b9fe7162455e43f14d1e0348d7ffe000daf2b164",
   "mirrorUrl": "https://bgl730910-dotcom.github.io/mytv-updates/version.json"
 }
