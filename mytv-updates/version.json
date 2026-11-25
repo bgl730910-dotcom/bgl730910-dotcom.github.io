@@ -3,6 +3,6 @@
   "versionName": "1.8.2",
   "apkUrl": "https://raw.githubusercontent.com/bgl730910-dotcom/bgl730910-dotcom.github.io/main/mytv-updates/MyTV_v1.8.2_APK.apk",
   "notes": "v1.8.2 - ① 티비몬(TVMON) 포스터가 TV 화면에서 납작하게 눌리던 문제를 고쳤습니다(원본 2:3 비율 유지). ② 티비몬 위쪽 '≡ TVMON' 글자와 '무료 다시보기 순위를 확인해보세요' 제목이 겹치던 문제를 고쳤습니다. ③ 비키TV(티비위키) 검색: 돋보기로 연 검색칸에 리모컨 방향키 한 번으로 들어가고 ▼ 로 빠져나옵니다. ④ My TV 자체 검색([최근 사이트 안에서 찾기])이 검색칸이 접혀 있어도 돋보기를 대신 눌러 펼친 뒤 검색합니다. ⑤ 시청 중 ▲ 또는 [메뉴] 로 위쪽 도우미 바를 열고 [홈으로] 를 누르면 뒤로가기를 거치지 않고 한 번에 홈으로 갑니다(보던 영상 1건만 이어보기에 저장). ⑥ 뒤로가기·홈으로 로 나갈 때 거쳐 가는 앞 페이지가 이어보기에 중복 저장되던 문제를 막았습니다.",
-  "sha256": "f206b582b68c096cd3e6ef271c0c3143a9e39ceddc69d53ba7278558473955ff",
+  "sha256": "a6e8de679b8b456690be3157e5cb93b52b0aac9e1ed41f4363654a4e087297b1",
   "mirrorUrl": "https://bgl730910-dotcom.github.io/mytv-updates/version.json"
 }
