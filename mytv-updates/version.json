@@ -1,8 +1,8 @@
 {
-  "versionCode": 22,
-  "versionName": "1.8.3",
-  "apkUrl": "https://raw.githubusercontent.com/bgl730910-dotcom/bgl730910-dotcom.github.io/main/mytv-updates/MyTV_v1.8.3_APK.apk",
-  "notes": "v1.8.3 - ① 티비몬(TVMON) 세부 방(영화·드라마·예능·애니·애니영화) 포스터가 가로로 납작하게 눌리던 문제를 고쳤습니다. 메인은 v1.8.2 에서 고쳤지만 세부 방은 구조가 달라 손대지 못했던 곳으로, 이제 다섯 방 모두 원본 2:3 비율로 나옵니다(960 화면 294x153 → 175x262). ② TV 화면(960)에서 목록을 메인 화면과 같은 밀도로 한 줄 5개로 맞췄습니다(휴대폰 폭은 그대로). ③ 세부 방 위쪽에 사이트 여백 70px 과 앱 여백 56px 이 겹쳐 생기던 빈 띠를 없애 방 제목이 머리글 바로 아래에서 시작합니다. ④ 검색 결과 포스터가 구형 안드로이드 7 셋톱(구형 WebView)에서도 2:3 으로 보입니다.",
-  "sha256": "4c448bb2b7e053cf688b82fb2f03509e7c87502b7cd2af1f068d7c08f1ccecb2",
+  "versionCode": 23,
+  "versionName": "1.8.4",
+  "apkUrl": "https://raw.githubusercontent.com/bgl730910-dotcom/bgl730910-dotcom.github.io/main/mytv-updates/MyTV_v1.8.4_APK.apk",
+  "notes": "v1.8.4 - ① 티비몬 목록 가운데가 비던 문제를 고쳤습니다. 사이트가 카드를 float 로 배치하는데 포스터 원본 비율이 제각각이라 카드 높이가 달라졌고, 그래서 한 줄이 끝나면 다음 카드가 4번째 칸에 홀로 떨어져 왼쪽 칸이 비었습니다(사진 제보와 같은 화면). 이제 포스터를 2:3 상자로 고정하고 카드를 inline-block 으로 배치해, 시사·영화·드라마·예능·애니·애니영화 방 어디서든 한 줄 5개가 꽉 차고 중간 빈칸이 생기지 않습니다. ② 영상이 실행되지 않았는데도 방에 들어가기만 하면 이어보기가 생기던 문제를 고쳤습니다. 이제 사이트 홈·목록 방·검색·로그인 화면은 이어보기에 저장하지 않고, 실제 회차·작품 시청 화면이거나 영상이 실제로 재생되고 있을 때만 저장합니다(온에어TV 실시간 채널은 그대로 저장). ③ v1.8.3 의 포스터 2:3 비율·한 줄 5개·위쪽 빈 띠 제거는 그대로입니다.",
+  "sha256": "1b2dbaa8e5cb1b6cf7ee7f308c48bd002e38847e049adcc73504743ca8cca92d",
   "mirrorUrl": "https://bgl730910-dotcom.github.io/mytv-updates/version.json"
 }
