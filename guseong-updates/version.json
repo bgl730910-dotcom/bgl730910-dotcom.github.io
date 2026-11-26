@@ -1,8 +1,8 @@
 {
-  "versionCode": 2,
-  "versionName": "1.0.1",
-  "apkUrl": "https://bgl730910-dotcom.github.io/guseong-updates/CheonmunsaGuseong_v1.0.1.apk",
-  "notes": "v1.0.1 — ①구궁반·운세에 도사폰 '년월 합반' 도표(한 칸 위=연반, 아래=월반)와 빨강(년)·파랑(월) 삼합선, 바깥 5세 단위 평생 운 나이대 ②평생 운(1~60세 흐름·평생수) ③궁금증별 답(이사·이동, 사업·재물, 인연·가정, 건강) ④삼합선·포국 원리 해설 ⑤선생님께 질문(오프라인 구성학 해설) ⑥생시 모름 등록. 기존 년반·월반 따로 보기도 그대로 있습니다.",
-  "sha256": "27d8e6fee16e653293ccf1f36177dff9508fb05733ccc1092cd41f8223ac541d",
+  "versionCode": 3,
+  "versionName": "1.0.2",
+  "apkUrl": "https://bgl730910-dotcom.github.io/guseong-updates/CheonmunsaGuseong_v1.0.2.apk",
+  "notes": "v1.0.2 — ①한자를 모두 빼고 100% 한글로 표기(간지 기미·신해, 궁 이름 건궁·감궁·이궁, 별 이름, 살 이름, 원리 설명, 팝업, 범례까지) ②입문자를 위한 기초 과정 — 구성학이란 무엇인가, 남쪽이 왜 위인가, 본명성·월명성·일명성·시명성의 차이와 구하는 법, 오행 상생상극, 오황·암검·파살·본명살의 차이, 동회·피동회, 아홉 별의 성격, 양둔·음둔, 절입·선천반·명반·포국·구궁·12궁·평생수·나이대·내방 점사 같은 기초 용어를 생일 등록 없이도 답합니다. ③홈과 내 사주 탭에 [기초부터 배우기]를 넣었습니다.",
+  "sha256": "ea3a549e8039ec8ef6cfd963f35ba6832ae6ab1524c00be1bc705d9457bb71ff",
   "mirrorUrl": "https://bgl730910-dotcom.github.io/guseong-updates/version.json"
 }
