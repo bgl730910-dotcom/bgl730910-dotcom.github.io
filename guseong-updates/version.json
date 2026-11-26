@@ -1,8 +1,8 @@
 {
-  "versionCode": 1,
-  "versionName": "1.0.0",
-  "apkUrl": "https://bgl730910-dotcom.github.io/guseong-updates/CheonmunsaGuseong_v1.0.0.apk",
-  "notes": "천문사 구성학 첫 버전입니다. 도사폰 구성포국과 같은 규칙으로 년·월·일·시 구성을 계산합니다(오황살·암검살·파살·삼합·12궁 간지 포함). 생일을 등록하면 원사주와 타고난 별을 풀어 드리고, 올해·월별 운세에 좋은 점과 조심할 점, 길방위·흉방위를 보여 드립니다. 지금 시각 점사와 날짜를 골라 보는 구성반도 있습니다.",
-  "sha256": "d69f6385e6104aac2bd632bdd0e2815b1dcc7753eb30a5d56ccaebbf434e1c22",
+  "versionCode": 2,
+  "versionName": "1.0.1",
+  "apkUrl": "https://bgl730910-dotcom.github.io/guseong-updates/CheonmunsaGuseong_v1.0.1.apk",
+  "notes": "v1.0.1 — ①구궁반·운세에 도사폰 '년월 합반' 도표(한 칸 위=연반, 아래=월반)와 빨강(년)·파랑(월) 삼합선, 바깥 5세 단위 평생 운 나이대 ②평생 운(1~60세 흐름·평생수) ③궁금증별 답(이사·이동, 사업·재물, 인연·가정, 건강) ④삼합선·포국 원리 해설 ⑤선생님께 질문(오프라인 구성학 해설) ⑥생시 모름 등록. 기존 년반·월반 따로 보기도 그대로 있습니다.",
+  "sha256": "538ce50d66ce559083c35ec2465362ad8c7e24c688674c92d0fcf55f0b566ce9",
   "mirrorUrl": "https://bgl730910-dotcom.github.io/guseong-updates/version.json"
 }
