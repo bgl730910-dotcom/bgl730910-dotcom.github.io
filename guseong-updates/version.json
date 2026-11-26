@@ -3,6 +3,6 @@
   "versionName": "1.0.0",
   "apkUrl": "https://bgl730910-dotcom.github.io/guseong-updates/CheonmunsaGuseong_v1.0.0.apk",
   "notes": "천문사 구성학 첫 버전입니다. 도사폰 구성포국과 같은 규칙으로 년·월·일·시 구성을 계산합니다(오황살·암검살·파살·삼합·12궁 간지 포함). 생일을 등록하면 원사주와 타고난 별을 풀어 드리고, 올해·월별 운세에 좋은 점과 조심할 점, 길방위·흉방위를 보여 드립니다. 지금 시각 점사와 날짜를 골라 보는 구성반도 있습니다.",
-  "sha256": "e174025fa49be5dc9f90febc5394382e5bdd45527ef722dd4ff0471e5f33380b",
+  "sha256": "a32e962a757f66d237e87f6704fab10a4d70e3b004f322a8455bcd49fb99cf41",
   "mirrorUrl": "https://bgl730910-dotcom.github.io/guseong-updates/version.json"
 }
