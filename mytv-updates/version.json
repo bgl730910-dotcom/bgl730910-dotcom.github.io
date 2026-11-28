@@ -1,8 +1,8 @@
 {
-  "versionCode": 25,
-  "versionName": "1.8.6",
-  "apkUrl": "https://raw.githubusercontent.com/bgl730910-dotcom/bgl730910-dotcom.github.io/main/mytv-updates/MyTV_v1.8.6_APK.apk",
-  "notes": "v1.8.6 - 기본 사이트에 AV19(av19t.com)를 추가했습니다. MISSAV·야모아와 같이 크롬으로 열리는 사이트이고, 목록에 \"AV19 (크롬)\"으로 보입니다. 예전에 av19 주소(av19t.com·av19.to·av19.com 등)를 직접 저장해 두었어도 앱을 켤 때 AV19 한 줄로 맞춰 주므로 목록에서 빠지거나 두 줄로 겹치지 않습니다. 그 밖의 기능(리모컨 도우미 검색창·이어보기 포스터·구형 안드로이드 TV 방어)은 v1.8.5 그대로입니다.",
-  "sha256": "8386d41fc2f6ae49a13c95da5c8e3b15e5444075bfc2188ec503122fe8c5fc26",
+  "versionCode": 26,
+  "versionName": "1.8.7",
+  "apkUrl": "https://raw.githubusercontent.com/bgl730910-dotcom/bgl730910-dotcom.github.io/main/mytv-updates/MyTV_v1.8.7_APK.apk",
+  "notes": "v1.8.7 - 고화질 실시간 TV를 새로 넣었습니다. 왼쪽 메뉴 [실시간 TV]를 누르면 YTN·TV조선·EBS·지역MBC·홈쇼핑 등 실측으로 살아 있는 43채널이 나오고, 리모컨 ▲▼로 골라 OK로 전체화면 시청합니다. ◀▶로 채널을 넘기고 BACK이면 홈으로 돌아옵니다. 목록 맨 위에는 KBS1·KBS2·MBC·SBS·JTBC·EBS·연합뉴스TV 공식 온에어도 들어 있습니다. 기존 [실시간](온에어TV)과 다른 기능은 그대로입니다.",
+  "sha256": "12a8e7460a7ab671a0c9bb8987e1e6e70ebca89a607c21950a3f317dab4d3e53",
   "mirrorUrl": "https://bgl730910-dotcom.github.io/mytv-updates/version.json"
 }
