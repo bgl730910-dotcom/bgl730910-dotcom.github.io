@@ -3,6 +3,6 @@
   "versionName": "1.8.7",
   "apkUrl": "https://raw.githubusercontent.com/bgl730910-dotcom/bgl730910-dotcom.github.io/main/mytv-updates/MyTV_v1.8.7_APK.apk",
   "notes": "v1.8.7 - 고화질 실시간 TV를 새로 넣었습니다. 왼쪽 메뉴 [실시간 TV]를 누르면 YTN·TV조선·EBS·지역MBC·홈쇼핑 등 실측으로 살아 있는 43채널이 나오고, 리모컨 ▲▼로 골라 OK로 전체화면 시청합니다. ◀▶로 채널을 넘기고 BACK이면 홈으로 돌아옵니다. 목록 맨 위에는 KBS1·KBS2·MBC·SBS·JTBC·EBS·연합뉴스TV 공식 온에어도 들어 있습니다. 기존 [실시간](온에어TV)과 다른 기능은 그대로입니다.",
-  "sha256": "12a8e7460a7ab671a0c9bb8987e1e6e70ebca89a607c21950a3f317dab4d3e53",
+  "sha256": "991fe2f82d0ae98490d204f303796393bd667d5c7015d7dd84315ae4444c18fd",
   "mirrorUrl": "https://bgl730910-dotcom.github.io/mytv-updates/version.json"
 }
